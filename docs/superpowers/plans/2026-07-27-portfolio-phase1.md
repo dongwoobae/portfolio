@@ -17,11 +17,36 @@
 이 계획은 아래가 준비된 상태를 전제한다. 에이전트가 대신할 수 없다.
 
 - [x] **도메인** — `dwoobae.com` (Cloudflare Registrar, 2026-07 등록). Cloudflare 대시보드에 zone이 활성 상태여야 한다.
-- [ ] **Cloudflare API 토큰 발급** — 대시보드 → My Profile → API Tokens → Create Token → "Edit Cloudflare Workers" 템플릿. 생성된 토큰을 GitHub 저장소 `dongwoobae/portfolio` → Settings → Secrets and variables → Actions → New repository secret에 **`CLOUDFLARE_API_TOKEN`** 이름으로 등록.
+- [ ] **Cloudflare API 토큰 발급** — 아래 "API 토큰 발급 상세" 참고. 생성된 토큰을 GitHub 저장소 `dongwoobae/portfolio` → Settings → Secrets and variables → Actions → New repository secret에 **`CLOUDFLARE_API_TOKEN`** 이름으로 등록.
 - [ ] **Next.js 스캐폴드 생성** — Task 1에 명령과 절차가 있다. 대화형 프롬프트가 있어 사용자가 직접 실행한다.
 - [ ] Node.js 24 이상, npm 설치 확인 (`node -v`)
 
 Account ID는 `1dafd4cb9889ab12c13852360fadf60f`를 사용한다 (대시보드 URL에 노출되는 공개값이라 저장소에 평문으로 둔다 — CI가 필요한 시크릿은 API 토큰 하나뿐).
+
+### API 토큰 발급 상세
+
+Cloudflare 공식 [Workers CI/CD 가이드](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)가 지정하는 절차다. **User API Tokens(My Profile)가 아니라 Account API Tokens**에서 만든다 — 계정 소유 토큰이라 개인 계정 상태와 무관하게 동작한다.
+
+1. 대시보드 → **Manage Account → Account API Tokens** → **Create Token**
+2. Permission policies의 **Custom** 드롭다운에서 **"Edit Cloudflare Workers"** 템플릿 선택
+3. 토큰 이름 지정 (예: `portfolio-ci`)
+4. **Account Resources**를 배포할 계정 하나로 제한
+5. **Zone Resources**를 `dwoobae.com` 하나로 제한
+
+권한을 직접 고르지 말고 템플릿을 쓰는 것을 권한다. Cloudflare가 검증하는 조합이라 배포 중간에 권한 하나가 모자라 실패하는 일을 피할 수 있다.
+
+템플릿이 부여하는 권한은 아래와 같다. 각 항목이 왜 필요한지 참고용으로 적어둔다.
+
+| 범위 | 권한 | 용도 |
+| --- | --- | --- |
+| Account | Workers Scripts (edit) | Worker 배포. **Workers Assets(정적 파일) 업로드도 이 권한에 포함** |
+| Account | Account Settings (read) | wrangler가 계정 정보를 조회 |
+| Account | Workers KV Storage (edit) | 템플릿 기본 포함. 1차에서는 미사용 |
+| Account | Workers R2 Storage (edit) | 템플릿 기본 포함. 1차에서는 미사용 |
+| Zone | **Workers Routes (edit)** | **커스텀 도메인 연결에 필수** (Task 6의 `custom_domain: true` routes) |
+| User | User Details (read), Memberships (read) | `wrangler whoami` 등 신원 확인 |
+
+> 3차 릴리스에서 D1을 도입하면 **Account → D1 (edit)** 권한을 추가해야 한다. 그때 토큰을 새로 만들거나 기존 토큰을 수정한다.
 
 **도메인 주의:** `dongwoobae.com`을 사려다 `dwoobae.com`을 등록했고 환불이 안 된다. 2027-07에 이전할 예정이므로 **사이트 URL을 코드에 하드코딩하지 않는다.** `NEXT_PUBLIC_SITE_URL`을 단일 출처로 쓰고, 도메인 교체가 환경변수와 `wrangler.jsonc` routes 수정만으로 끝나게 한다.
 
