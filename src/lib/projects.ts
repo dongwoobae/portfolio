@@ -5,10 +5,6 @@ export function getProjectsInOrder(): ProjectMeta[] {
   return [...projects].sort((a, b) => a.order - b.order);
 }
 
-export function getFeaturedProjects(): ProjectMeta[] {
-  return getProjectsInOrder().filter((project) => project.featured);
-}
-
 export function getCaseStudyProjects(): ProjectMeta[] {
   return getProjectsInOrder().filter((project) => project.hasCaseStudy);
 }

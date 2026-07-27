@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_KR, JetBrains_Mono } from "next/font/google";
-import { SiteFooter } from "@/components/layout/SiteFooter";
-import { SiteHeader } from "@/components/layout/SiteHeader";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -58,13 +56,13 @@ export default function RootLayout({
         />
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-20 focus:rounded focus:bg-ink focus:px-4 focus:py-2 focus:text-page"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:font-medium focus:text-page"
         >
           본문 바로가기
         </a>
-        <SiteHeader />
-        <div id="main">{children}</div>
-        <SiteFooter />
+        {/* 페이지마다 셸이 달라서(메인은 좌측 레일, 상세는 중앙 1단) 공통 헤더·푸터를
+            두지 않는다. #main 앵커는 각 페이지의 <main>이 갖는다. */}
+        {children}
       </body>
     </html>
   );

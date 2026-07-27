@@ -1,29 +1,32 @@
 import { projectMetaSchema, type ProjectMeta } from "@/content/schema";
 
-// 착수 순. 성장 서사가 이 순서를 근거로 삼는다.
+// 목록 순서 = 메인 `$ ls projects/`의 행 순서이자 상세 페이지 이전/다음 순환 순서다.
 // 기간·커밋 수는 각 저장소의 git 이력에서 산출한 값이다 (2026-07-27 기준).
 const rawProjects = [
   {
     slug: "ku-barrier-free-map",
     order: 1,
-    title: "모두의 캠퍼스 — 고려대 배리어프리 지도",
-    summary:
-      "캠퍼스 접근성 시설을 통합 제공하는 인터랙티브 지도. 접근성 서비스인 만큼 UI 자체의 접근성도 전수 감사했다.",
+    title: "모두의 캠퍼스",
+    summary: "배리어프리 캠퍼스 웹 지도 · 고려대 체인지메이커스 선정",
+    stackLine: "next.js · supabase",
+    badge: { label: "WIP", tone: "accent" },
+    preview: "/screenshots/modu-map.png",
     periodStart: "2026.04",
     status: "in-progress",
     role: "1인 개발 (기획·설계·개발·운영)",
     stack: ["Next.js", "TypeScript", "Leaflet", "Supabase", "Cloudflare R2"],
     repoUrl: "https://github.com/dongwoobae/korea-univ-project",
     commits: 188,
-    featured: false,
     hasCaseStudy: false,
   },
   {
     slug: "ankang-welfare",
     order: 2,
-    title: "안강 섬김 노인복지센터 홈페이지",
-    summary:
-      "복지센터 공식 홈페이지와 운영자 CMS. 게시 사진의 얼굴을 자동 감지·블러 처리해 이용자 초상권을 보호한다.",
+    title: "안강 섬김 복지센터",
+    summary: "실고객 홈페이지·CMS · 얼굴 자동 블러",
+    stackLine: "next.js · sharp",
+    badge: { label: "LIVE", tone: "muted" },
+    preview: "/screenshots/sumgim-home.png",
     periodStart: "2026.05",
     periodEnd: "2026.06",
     periodNote: "이후 유지보수",
@@ -40,15 +43,16 @@ const rawProjects = [
     liveUrl: "https://sumgim-welfare.com",
     repoUrl: "https://github.com/dongwoobae/ankang-sumgim",
     commits: 121,
-    featured: true,
     hasCaseStudy: true,
   },
   {
     slug: "ycc-church",
     order: 3,
-    title: "영천중앙교회 홈페이지",
-    summary:
-      "설교·주보·소식·갤러리 공개 페이지와 CMS. 유튜브에 영상이 올라오면 자막 수집부터 AI 요약까지 자동으로 채워진다.",
+    title: "영천중앙교회",
+    summary: "교회 홈페이지·CMS · 설교 자동화 · AI 요약",
+    stackLine: "next.js · qstash",
+    badge: { label: "LIVE", tone: "muted" },
+    preview: "/screenshots/ycc-home.png",
     periodStart: "2026.06",
     periodEnd: "2026.07",
     periodNote: "이후 유지보수",
@@ -66,15 +70,16 @@ const rawProjects = [
     liveUrl: "https://www.ycjc.kr",
     repoUrl: "https://github.com/dongwoobae/ycc-website",
     commits: 377,
-    featured: true,
     hasCaseStudy: true,
   },
   {
     slug: "vehicle-manufacturer",
     order: 4,
-    title: "특장차 제작업체 홈페이지",
-    summary:
-      "기존 Wix 사이트를 Next.js로 전면 리모델링. Cloudflare Workers 엣지 스택으로 구축하고 첫날부터 CI/CD를 세웠다.",
+    title: "월드ENC.CO",
+    summary: "반려견 목욕차 회사 홈페이지 · Wix → 자체 서비스 이관",
+    stackLine: "next.js · cloudflare",
+    badge: { label: "WIP", tone: "accent" },
+    preview: "/screenshots/worldeng-home.png",
     periodStart: "2026.07",
     periodNote: "부품관리 확장은 고객 자료 대기",
     status: "in-progress",
@@ -89,21 +94,21 @@ const rawProjects = [
     ],
     liveUrl: "https://worldengco-website.dongwoobae.workers.dev",
     commits: 64,
-    featured: false,
     hasCaseStudy: false,
   },
   {
     slug: "herbal-medicine-platform",
     order: 5,
     title: "한약안전사용 플랫폼",
-    summary:
-      "보건복지부 한의디지털융합사업 과제. 한의 정보 3만 건과 공공데이터 API를 통합했고 1인 PM 겸 개발자로 수행했다.",
+    summary: "복지부 과제 · 공공데이터 3만건+ 통합",
+    stackLine: "java · mysql",
+    badge: { label: "1인 PM", tone: "muted" },
+    preview: "/screenshots/hmsu-home.png",
     periodStart: "2025.01",
     periodEnd: "2025.07",
     status: "completed",
     role: "1인 PM · 개발",
     stack: ["Java", "JSP", "Servlet", "Tomcat", "MySQL"],
-    featured: false,
     hasCaseStudy: false,
   },
 ];

@@ -7,16 +7,31 @@ export const projectStatusSchema = z.enum([
 ]);
 export type ProjectStatus = z.infer<typeof projectStatusSchema>;
 
+// 목록 행 오른쪽 끝 배지. 상태 enum에서 유도하지 않는다 —
+// 한약안전사용은 "완료"가 아니라 역할("1인 PM")을 배지로 쓴다(디자인).
+export const projectBadgeSchema = z.object({
+  label: z.string().min(1),
+  tone: z.enum(["accent", "muted"]),
+});
+
 export const projectMetaSchema = z.object({
   // URL slug — 같은 이름의 MDX 파일이 src/content/projects/에 있어야 한다.
   slug: z
     .string()
     .regex(/^[a-z0-9-]+$/, "slug는 소문자·숫자·하이픈만 사용한다"),
-  // 착수 순서. 성장 서사가 이 순서에 의존하므로 중복되면 빌드를 깬다.
+  // 착수 순서. 목록 정렬과 상세 페이지의 이전/다음 네비가 이 순서를 따른다.
   order: z.number().int().positive(),
+  // 목록 행에 쓰는 짧은 이름. 상세 h1은 이보다 길 수 있다.
   title: z.string().min(1),
-  // 목록 카드 한 줄 요약
+  // 목록 행 한 줄 요약
   summary: z.string().min(1),
+  // 목록 행의 모노 스택 표기. 배열이 아니라 표시 문자열 그대로 둔다.
+  stackLine: z.string().min(1),
+  badge: projectBadgeSchema,
+  // 행 hover 시 우하단에 뜨는 미리보기 이미지
+  preview: z
+    .string()
+    .regex(/^\/screenshots\/[a-z0-9-]+\.png$/, "/screenshots/*.png 경로"),
   periodStart: z.string().regex(/^\d{4}\.\d{2}$/, "YYYY.MM 형식"),
   periodEnd: z
     .string()
@@ -29,8 +44,6 @@ export const projectMetaSchema = z.object({
   liveUrl: z.string().url().optional(),
   repoUrl: z.string().url().optional(),
   commits: z.number().int().nonnegative().optional(),
-  // 홈에 노출할 대표 케이스 스터디 여부
-  featured: z.boolean(),
   // 케이스 스터디 본문이 준비된 프로젝트만 상세 페이지를 생성한다.
   hasCaseStudy: z.boolean(),
 });

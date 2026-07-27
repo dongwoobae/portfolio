@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
   // 워크스페이스 루트를 이 프로젝트로 고정한다. 그러지 않으면 Next가 상위 디렉터리의
   // lockfile을 보고 루트를 추론해, standalone 출력이 하위 경로로 밀려나 OpenNext가 찾지 못한다.
   outputFileTracingRoot: import.meta.dirname,
+  // 프로젝트 목록·소개는 메인 한 장으로 합쳐졌다. 색인된 옛 URL은 홈으로 보낸다.
+  async redirects() {
+    return [
+      { source: "/projects", destination: "/", permanent: true },
+      { source: "/about", destination: "/", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {
