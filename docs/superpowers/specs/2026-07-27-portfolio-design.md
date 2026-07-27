@@ -1,0 +1,105 @@
+# 개인 포트폴리오 웹사이트 (dongwoobae.com) 설계
+
+- 작성일: 2026-07-27
+- 상태: 사용자 승인 대기
+- 관련 자료: [제로베이스 포트폴리오 아티클](https://zero-base.co.kr/event/media_insight_contents_FE_frontend_portfolio_web), [GitHub 프로필](https://github.com/dongwoobae)
+
+## 1. 목적과 포지셔닝
+
+취업/이직 지원용 개인 포트폴리오 웹사이트.
+
+핵심 메시지:
+
+> **"실사용자가 있는 서비스를 수주부터 설계·개발·운영까지 혼자 책임지는 백엔드 중심 풀스택 개발자"**
+
+- 모든 페이지는 이 문장을 증명하는 방향으로 작성한다. "무엇을 만들 줄 안다"가 아니라 "만든 것이 지금 돌아가고 있다"를 보여준다.
+- 회사 네임밸류 대신 **의뢰 → 운영 → 소개로 후속 수주** 서사를 전면에 둔다.
+- 백엔드·DevOps 관점(파이프라인 설계, 동시성 제어, 보안 경계, 인프라 운영)을 강조한다.
+- 언어: 한국어 기본. 영어 버전은 범위 외(추후 필요 시 별도 설계).
+
+## 2. 기술 아키텍처
+
+| 구분 | 선택 | 이유 |
+|---|---|---|
+| 프레임워크 | Next.js 16 App Router + TypeScript + Tailwind CSS v4 | 기존 프로젝트와 동일 스택, 콘텐츠에 집중 |
+| 배포 | OpenNext → Cloudflare Workers (`@opennextjs/cloudflare`, wrangler) | 사이트 자체가 DevOps 증명 수단 |
+| 도메인 | **dongwoobae.com** (Cloudflare Registrar 구매 예정) | |
+| 콘텐츠 | MDX 파일 기반. frontmatter는 zod로 빌드타임 검증 | DB 불필요, git이 곧 CMS |
+| 지표 저장 | Cloudflare D1 (3차 단계에서 도입) | Workers Cron 헬스체크 결과 적재 |
+| CI/CD | GitHub Actions: lint → typecheck → test → wrangler deploy | 푸터에 "이 사이트도 이렇게 배포됩니다" 링크로 어필 |
+
+- 관리자 페이지 없음. 콘텐츠는 git push로 관리한다 (YAGNI).
+- 인증·세션 없음. 전 페이지 공개.
+
+## 3. 정보 구조 (IA)
+
+```
+/                    홈: 포지셔닝 히어로 + 운영 서비스 상태 카드 + 대표 케이스 스터디 2개 + 연락처
+/projects            프로젝트 목록 (운영 중 / 진행 중 / 완료 구분)
+/projects/[slug]     케이스 스터디 상세
+/notes               딥다이브 노트 목록 — 날짜순 피드가 아니라 "프로젝트별 그룹" 뷰가 기본
+/notes/[slug]        노트 상세
+/about               타임라인(지구환경과학 → 네이버클라우드 데브옵스 과정 → 실무 + 수주 이력) + 개발 철학
+```
+
+- SEO: sitemap, robots, 페이지별 metadata, OG 이미지, JSON-LD(Person).
+- 딥다이브 노트를 날짜 피드가 아닌 프로젝트별 그룹으로 묶는 이유: 비정기 작성(프로젝트 수행 시에만 집중 작성)이 구조상 공백으로 보이지 않게 하기 위함. 밀도로 승부하는 형식.
+
+## 4. 케이스 스터디 템플릿
+
+각 프로젝트 MDX는 동일한 골격을 따른다.
+
+1. **한 줄 요약 + 메타** — 기간, 역할(1인 전과정), 스택, 라이브 링크
+2. **배경** — 누가, 왜 의뢰했는가 (실제 고객 서사)
+3. **문제** — 기술 문제가 아니라 사용자·운영자의 문제로 서술
+4. **아키텍처** — 다이어그램 1장 (Mermaid 또는 SVG)
+5. **설계 결정 3~5개** — 각각 "선택지 → 선택 → 트레이드오프" 형식
+6. **운영에서 배운 것** — 장애·개선·수치
+7. **딥다이브 노트 링크**
+
+### 대상 프로젝트 5개
+
+| 프로젝트 | 상태 | 케이스 스터디 소재 (예시) |
+|---|---|---|
+| 영천중앙교회 (ycjc.kr) | 운영 중 | WebSub·QStash·Gemini 설교 자동화, HWP 바이너리 파싱, AI 썸네일, 원자적 claim |
+| 안강 섬김 노인복지센터 (sumgim-welfare.com) | 운영 중 | 얼굴 자동 블러 파이프라인, 신뢰 경계 검증, RLS/service role 분리 |
+| 모두의 캠퍼스 (고려대 배리어프리 지도) | 진행 중 | Leaflet·Overpass 동기화, 경사도 시각화, 접근성 |
+| worldengco-website | 진행 중 | Cloudflare Workers(OpenNext)·D1, Wix 마이그레이션 |
+| 한약안전사용 플랫폼 | 완료 | 정부과제 1인 PM·개발, 공공데이터 API 통합 |
+
+소재는 각 저장소 README에 이미 정리되어 있어 대부분 재가공이다.
+
+## 5. 단계별 릴리스
+
+- **1차 (공개 가능 최소선)**: 홈 + 케이스 스터디 2개(교회·복지센터) + About + CI/CD 배포 + SEO
+- **2차**: 나머지 케이스 스터디 3개 + 딥다이브 노트 3편(WebSub 파이프라인, HWP 바이너리 파싱, 얼굴 블러)
+- **3차**: Workers Cron 헬스체크 → D1 적재 → 홈 상태 뱃지·응답시간 표시
+
+각 단계는 독립적으로 배포 가능해야 하며, 1차 완료 시점부터 사이트를 공개한다.
+
+## 6. 에러 처리
+
+- 존재하지 않는 slug: `notFound()` → 커스텀 404.
+- MDX frontmatter 오류: 빌드 실패로 조기 검출 (zod 검증을 콘텐츠 로더에 내장).
+- 3차 라이브 지표: 헬스체크 실패·D1 조회 실패 시 지표 영역만 숨기고 페이지는 정상 렌더 (graceful degradation).
+
+## 7. 테스트
+
+- Vitest: 콘텐츠 로더·frontmatter zod 검증·slug 유틸.
+- Playwright 스모크: 전 페이지 렌더 확인 (홈, 목록, 상세, about, 404).
+- GitHub Actions에서 lint·typecheck·test를 배포 게이트로 사용.
+
+## 8. 범위 외 (명시적 제외)
+
+- 영어 버전, 테마 전환(다크모드 포함), 댓글, 검색, 관리자 페이지, 뉴스레터.
+- 기존 프로젝트 저장소의 README 수정 (포트폴리오와 별개 작업).
+
+## 9. 결정 이력
+
+- 형태: 개인 포트폴리오 웹사이트 (문서형 병행은 추후)
+- 목적: 취업/이직 지원용
+- 포지셔닝: 백엔드 중심 풀스택 + DevOps 관점
+- 콘텐츠: 케이스 스터디 + 딥다이브 노트 + About 타임라인 + (3차) 운영 지표 라이브
+- 스택: Next.js + OpenNext + Cloudflare Workers
+- 도메인: dongwoobae.com
+- 저장소: `c:\Users\servi\projects\portfolio` → GitHub `dongwoobae/portfolio`
