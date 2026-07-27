@@ -5,7 +5,8 @@
   // Account ID는 비밀이 아니다(대시보드 URL에 노출). 여기 두면 CI는
   // CLOUDFLARE_API_TOKEN 하나만 시크릿으로 필요하다.
   "account_id": "1dafd4cb9889ab12c13852360fadf60f",
-  // @cloudflare/workers-types 4.20260702와 정합. 날짜를 올릴 때는 배포 전 preview로 회귀 확인.
+  // 런타임 타입은 `npm run cf-typegen`이 이 날짜 기준으로 cloudflare-env.d.ts에 생성한다.
+  // 날짜를 올릴 때는 cf-typegen을 다시 돌리고 배포 전 preview로 회귀 확인.
   "compatibility_date": "2026-07-02",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
@@ -16,9 +17,10 @@
   "images": {
     "binding": "IMAGES",
   },
-  // 도메인 zone 활성화 후 주석 해제 (Task 5)
-  // "routes": [
-  //   { "pattern": "dwoobae.com", "custom_domain": true },
-  //   { "pattern": "www.dwoobae.com", "custom_domain": true },
-  // ],
+  // custom_domain 라우트는 배포 시 Cloudflare가 해당 zone에 DNS 레코드를 자동 생성한다.
+  // 도메인을 옮길 때 손대는 세 곳 중 하나다 (나머지: 새 zone 추가, NEXT_PUBLIC_SITE_URL).
+  "routes": [
+    { "pattern": "dwoobae.com", "custom_domain": true },
+    { "pattern": "www.dwoobae.com", "custom_domain": true },
+  ],
 }

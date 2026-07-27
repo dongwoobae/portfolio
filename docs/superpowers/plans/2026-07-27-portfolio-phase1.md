@@ -108,6 +108,31 @@ Task 2 코드 리뷰에서 드러난 문제와 사용자 추가 요구를 반영
 
 ---
 
+## 실행 결과 (2026-07-27, Task 12~18 세션)
+
+**Task 6이 건너뛰어진 채로 Task 7~15가 진행됐다.** 커밋 이력에 "커스텀 도메인 연결"이 없고, `wrangler.jsonc`의 `routes`가 주석 상태였으며 `.env.example`도 없었다. `dwoobae.com`은 Cloudflare 네임서버(celine/joel)에 zone은 있었지만 A 레코드가 없어 해석되지 않았다. Task 17 직후에 Task 6을 소급 수행했다.
+
+**커밋 순서가 계획과 다르다.** Task 8(Playwright)이 Task 9~11 뒤에 수행됐다. 결과물은 동일하다.
+
+계획 원문과 달라진 지점:
+
+| # | 무엇 | 왜 |
+| --- | --- | --- |
+| 10 | Task 13의 `ProjectMetaBar`가 `StatusBadge`를 import만 하고 쓰지 않아 lint가 깨졌다 → 메타 바 상단에 배지를 렌더 | 상세 페이지에 상태 표시가 아예 없던 문제도 함께 해소된다 |
+| 11 | Task 15 Step 6의 375px 가로 넘침 확인을 눈검사 대신 E2E로 고정 (`smoke.spec.ts`) | 3번 프로젝트에 "소개 페이지 모바일 가로 스크롤 제거"(`c4a00e3`) 회귀가 실제로 있었다. 일회성 확인은 재발을 못 막는다 |
+| 12 | Task 6 Step 3의 `cp .env.example .env.local`을 **실행하지 않고** `NEXT_PUBLIC_SITE_URL` 한 줄만 append | 기존 `.env.local`에 Cloudflare API 토큰과 R2 키가 들어 있어 덮어쓰면 소실된다 |
+| 13 | Task 15 스크린샷 4장은 저장소에 없다 (`public/screenshots/README.md`에 규격 명시) | 관리자 화면 2장이 로그인을 요구해 사용자가 직접 캡처하기로 했다. 넣기 전까지 상세 페이지 이미지가 깨진 상태로 렌더된다 |
+| 14 | `wrangler.jsonc`의 잘못된 주석 2건 수정 — "@cloudflare/workers-types 4.20260702와 정합"(실제 설치본 5.20260727.1)과 "(Task 5)"(정답은 Task 6) | 계획 100~102행에서 예고한 항목 |
+
+**미해결로 남긴 것:**
+
+- **`@cloudflare/workers-types`가 여전히 죽은 의존성이다.** `tsconfig.json`의 `types`에도 triple-slash 참조에도 없다. 제거가 맞지만, `npm run cf-typegen`을 실행해 `cloudflare-env.d.ts`가 이 패키지를 참조하지 않는지 확인한 뒤에 지워야 한다. 이번 세션에서는 wrangler 실행이 권한 정책에 막혀 검증하지 못했다.
+- **CI에 `cf-typegen` 스텝이 없다.** 바인딩을 쓰는 코드가 생기는 순간(=`CloudflareEnv` 참조) 로컬은 통과하고 CI `typecheck`만 실패한다. `cloudflare-env.d.ts`가 gitignore이기 때문이다.
+- **`npm run preview`(webpack + workerd) 대상 스모크를 돌리지 못했다.** 위와 같은 이유. `npm run build:worker`까지는 성공을 확인했다.
+- **로컬 `npm run deploy`를 실행하지 못했다.** 배포는 `main` push → GitHub Actions 경로로 수행한다.
+
+---
+
 ## 파일 구조
 
 작업이 끝났을 때의 저장소 구조. 각 파일의 책임을 한 줄로 정의한다.
