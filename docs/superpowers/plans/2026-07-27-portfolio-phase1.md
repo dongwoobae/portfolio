@@ -21,6 +21,22 @@
 
 **Task 2부터 바로 시작할 수 있다.**
 
+### 환경변수·시크릿을 어디에 두는가
+
+파일마다 읽는 주체가 달라 헷갈리기 쉽다. 1차 릴리스에서 필요한 값은 `NEXT_PUBLIC_SITE_URL` 하나뿐이지만, 규칙은 아래와 같다.
+
+| 파일/위치 | 읽는 주체 | 용도 | git |
+| --- | --- | --- | --- |
+| `.env.example` | (사람) | 필요한 키 목록 문서화 | 커밋함 |
+| `.env.local` | `next dev`/`next build` | 로컬 개발용 공개 값 (`NEXT_PUBLIC_*`) | **커밋 안 함** (`.gitignore`의 `.env*`) |
+| `.dev.vars` | `wrangler dev`, `npm run preview` | **로컬 Workers 런타임 시크릿** | **커밋 안 함** |
+| `wrangler secret put` | 배포된 Worker | **운영 시크릿** | 저장소에 없음 |
+| `wrangler.jsonc`의 `vars` | 배포된 Worker | 비밀 아닌 공개 설정값 | 커밋함 |
+
+**함정:** 배포된 Worker는 `.env.local`을 읽지 않는다. 서버에서만 쓰는 시크릿을 `.env.local`에만 넣고 배포하면 런타임에 `undefined`가 된다. Workers용 값은 반드시 `.dev.vars`(로컬)와 `wrangler secret put`(운영) 양쪽에 넣는다.
+
+**금지:** 서버 전용 시크릿에 `NEXT_PUBLIC_` 접두사를 붙이지 않는다. 클라이언트 번들에 그대로 포함된다.
+
 Account ID는 `1dafd4cb9889ab12c13852360fadf60f`를 사용한다 (대시보드 URL에 노출되는 공개값이라 저장소에 평문으로 둔다 — CI가 필요한 시크릿은 API 토큰 하나뿐).
 
 ### API 토큰 발급 상세
