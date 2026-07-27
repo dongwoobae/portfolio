@@ -49,6 +49,15 @@ test("케이스 스터디가 없는 프로젝트는 404다", async ({ page }) =>
   expect(response?.status()).toBe(404);
 });
 
+test("소개 페이지에 배경과 타임라인이 보인다", async ({ page }) => {
+  await page.goto("/about");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("소개");
+  await expect(page.getByRole("heading", { name: "배경" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "프로젝트 타임라인" }),
+  ).toBeVisible();
+});
+
 // 케이스 스터디 본문의 표·코드 블록은 .prose-scroll 안에서 자체 스크롤해야 하고,
 // 페이지 본문이 가로로 밀리면 안 된다. 3번 프로젝트에서 실제로 났던 회귀다.
 test("375px에서 어느 페이지도 가로로 밀리지 않는다", async ({ page }) => {
@@ -59,6 +68,7 @@ test("375px에서 어느 페이지도 가로로 밀리지 않는다", async ({ p
     "/projects",
     "/projects/ycc-church",
     "/projects/ankang-welfare",
+    "/about",
   ]) {
     await page.goto(path);
     const overflow = await page.evaluate(
