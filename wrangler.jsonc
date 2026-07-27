@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "dongwoobae-portfolio",
+  // Account ID는 비밀이 아니다(대시보드 URL에 노출). 여기 두면 CI는
+  // CLOUDFLARE_API_TOKEN 하나만 시크릿으로 필요하다.
+  "account_id": "1dafd4cb9889ab12c13852360fadf60f",
+  // @cloudflare/workers-types 4.20260702와 정합. 날짜를 올릴 때는 배포 전 preview로 회귀 확인.
+  "compatibility_date": "2026-07-02",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  // next/image 최적화를 Workers에서 처리하려면 필요하다 (케이스 스터디 스크린샷에 사용).
+  "images": {
+    "binding": "IMAGES",
+  },
+  // 도메인 zone 활성화 후 주석 해제 (Task 5)
+  // "routes": [
+  //   { "pattern": "dwoobae.com", "custom_domain": true },
+  //   { "pattern": "www.dwoobae.com", "custom_domain": true },
+  // ],
+}
