@@ -103,6 +103,7 @@ Task 2 코드 리뷰에서 드러난 문제와 사용자 추가 요구를 반영
 - **`@cloudflare/workers-types`가 죽은 의존성** — `tsconfig.json`의 `types`에도 triple-slash 참조에도 없다. `wrangler types`가 `cloudflare-env.d.ts`에 런타임 타입을 직접 생성하므로 Cloudflare 공식 권장도 이 패키지 제거다. Task 18에서 정리 여부 결정.
 - **CI에 `cf-typegen` 스텝 없음** — 지금은 바인딩을 쓰는 코드가 없어 무해하지만, `CloudflareEnv`를 참조하는 순간 로컬은 통과하고 CI의 `typecheck`만 실패한다(`cloudflare-env.d.ts`가 gitignore이므로).
 - **dev는 Turbopack, 배포는 webpack** — Task 8의 Playwright `webServer`가 `npm run dev`를 쓰므로 E2E는 Turbopack 산출물을 검증하고 배포는 webpack 산출물이 나간다. 의도된 구조지만, Task 18 최종 검증에 `npm run preview`(webpack+workerd) 대상 스모크를 한 번 포함한다.
+- **`mdx-components.tsx`에 `img` 매핑이 없는 것은 의도된 것** — 케이스 스터디 이미지는 마크다운 `![]()`가 아니라 Task 15의 `<Screenshot />` 컴포넌트로 넣는다. 그래야 `next/image` 최적화·고정 종횡비(CLS 방지)·캡션을 한곳에서 강제할 수 있다. MDX 본문에 마크다운 이미지 문법을 쓰지 말 것.
 - **`subsets: ["latin"]`은 의도된 것** — Noto Sans KR에 "korean" subset은 애초에 존재하지 않는다(Google이 한글을 번호 unicode-range로 슬라이스). `subsets`는 preload 대상만 정하고 모든 subset 파일은 self-host되므로 한글은 정상 렌더된다. 고칠 것 없음 — 다시 의심하지 말 것.
 
 ---
@@ -868,7 +869,7 @@ export function statusLabel(status: ProjectStatus): string {
 npm test
 ```
 
-기대: PASS (6 tests)
+기대: PASS (5 tests — `it()` 블록 기준. `statusLabel`은 한 블록 안에서 3건을 assert한다)
 
 - [ ] **Step 7: CI에 테스트 스텝 추가**
 
@@ -1270,7 +1271,7 @@ export const projects: ProjectMeta[] = rawProjects.map((project) =>
 npm test
 ```
 
-기대: PASS (11 tests — format 6 + meta 5)
+기대: PASS (10 tests — format 5 + meta 5)
 
 - [ ] **Step 5: 조회 헬퍼 테스트 작성**
 
@@ -1356,7 +1357,7 @@ export function getProjectBySlug(slug: string): ProjectMeta | undefined {
 npm test
 ```
 
-기대: PASS (16 tests)
+기대: PASS (15 tests — format 5 + meta 5 + projects 5)
 
 - [ ] **Step 9: 커밋**
 
@@ -2684,7 +2685,7 @@ gh run watch
 - [ ] `https://dwoobae.com`이 커스텀 도메인으로 서빙된다
 - [ ] 홈·프로젝트 목록·케이스 스터디 2편·About·404가 모두 동작한다
 - [ ] `main` push가 CI 게이트(lint·format·typecheck·test·e2e)를 통과해야만 자동 배포된다
-- [ ] 단위 테스트 16개 이상, E2E 7개 이상이 통과한다
+- [ ] 단위 테스트 15개 이상, E2E 7개 이상이 통과한다
 - [ ] sitemap·robots·OG 메타데이터·JSON-LD가 서빙된다
 - [ ] 모바일 폭에서 가로 스크롤이 없다
 
