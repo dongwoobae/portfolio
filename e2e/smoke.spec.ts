@@ -1,8 +1,24 @@
 import { expect, test } from "@playwright/test";
 
-test("홈에 이름과 포지셔닝이 보인다", async ({ page }) => {
+test("홈에 이름·개발 방식·기술 스택·성장 서사·대표 케이스가 보인다", async ({
+  page,
+}) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("배동우");
+  await expect(
+    page.getByRole("img", { name: "배동우 프로필 사진" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /AI로 빠르게/ }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "기술 스택" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "진행하면서 배운 것" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "대표 케이스 스터디" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /운영 중/ })).toHaveCount(2);
 });
 
 test("없는 경로는 404를 반환한다", async ({ page }) => {
