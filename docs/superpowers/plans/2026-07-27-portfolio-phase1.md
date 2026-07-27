@@ -106,38 +106,15 @@ portfolio/
 
 # Phase 0 — 인프라 관통
 
-## Task 1 (사용자): create-next-app 실행
+## Task 1 (사용자): create-next-app 실행 — ✅ 완료 (2026-07-27)
 
-대화형 프롬프트가 있어 **사용자가 직접 실행**한다. 에이전트는 Task 2부터 이어받는다.
+- [x] **Step 1: 스캐폴드 생성** — 사용자가 `create-next-app`으로 생성했다 (next 16.2.12).
+- [x] **Step 2: 구조 정리** — 스캐폴드가 `portfolio/portfolio/` 중첩 경로에 생성됐고 `--src-dir` 없이 만들어져, 저장소 루트로 승격하고 `app/` → `src/app/`으로 옮긴 뒤 `tsconfig.json`의 `paths`를 `"@/*": ["./src/*"]`로 바꿨다. 기본 SVG 자산도 제거했다. (커밋 `eaff5a3`)
+- [x] **Step 3: 검증** — `npx tsc --noEmit`, `npm run lint` 통과.
 
-- [ ] **Step 1: 저장소 루트에서 스캐폴드 생성**
+**현재 상태:** 루트에 `.gitignore` `README.md` `eslint.config.mjs` `next.config.ts` `package.json` `postcss.config.mjs` `tsconfig.json` `public/` `src/app/{layout.tsx,page.tsx,globals.css,favicon.ico}` `docs/`. 의존성은 create-next-app 기본값(next·react·tailwind·eslint·typescript)만 설치돼 있다.
 
-`c:\Users\servi\projects\portfolio`에서 실행한다. 이 디렉터리에는 `.git`과 `docs/`만 있고 create-next-app이 만드는 파일과 겹치지 않으므로 제자리에서 실행할 수 있다.
-
-```bash
-npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm
-```
-
-프롬프트가 뜨면 위 플래그와 같은 값을 고른다. Turbopack 사용 여부를 물으면 **아무거나 골라도 된다** — 배포 빌드는 Task 2에서 `--webpack`으로 고정하고, 개발 서버만 영향받는다.
-
-> 디렉터리가 비어 있지 않다고 거부하면, 빈 임시 폴더에 만든 뒤 내용물(`.git` 제외)을 `portfolio/`로 복사한다.
-
-- [ ] **Step 2: 생성 결과 확인**
-
-```bash
-npm run dev
-```
-
-`http://localhost:3000`에 Next.js 기본 페이지가 보이면 성공이다. 확인 후 종료한다.
-
-- [ ] **Step 3: 커밋**
-
-```bash
-git add -A
-git commit -m "chore: create-next-app 스캐폴드"
-```
-
-여기까지 하고 에이전트에게 넘긴다.
+> **Task 2 실행자 주의:** 위 상태를 전제로 진행한다. `next.config.ts`는 아직 빈 설정이고, `package.json` scripts에는 `dev`/`build`/`start`/`lint`만 있다. next 버전이 계획에 적힌 16.2.10이 아니라 **16.2.12**이므로, 추가 의존성 설치 시 `@next/mdx`와 `eslint-config-next`도 **16.2.12에 맞춘다**.
 
 ---
 
@@ -161,8 +138,10 @@ create-next-app 버전에 따라 파일 구성이 다를 수 있다. 아래 스�
 
 - [ ] **Step 2: 추가 의존성 설치**
 
+`@next/mdx`는 설치된 next와 **같은 버전**으로 맞춘다 (현재 16.2.12).
+
 ```bash
-npm install @mdx-js/loader @mdx-js/react @next/mdx @opennextjs/cloudflare zod
+npm install @mdx-js/loader @mdx-js/react @next/mdx@16.2.12 @opennextjs/cloudflare zod
 npm install -D @cloudflare/workers-types @playwright/test @types/mdx prettier prettier-plugin-tailwindcss vitest wrangler
 ```
 
