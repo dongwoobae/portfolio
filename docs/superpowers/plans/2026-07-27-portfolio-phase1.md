@@ -12,14 +12,14 @@
 
 ---
 
-## 사전 조건 (사용자 직접 수행)
+## 사전 조건 (사용자 직접 수행) — ✅ 전부 완료 (2026-07-27)
 
-이 계획은 아래가 준비된 상태를 전제한다. 에이전트가 대신할 수 없다.
+- [x] **도메인** — `dwoobae.com` (Cloudflare Registrar, 2026-07 등록).
+- [x] **Cloudflare API 토큰 발급** — Account API Tokens에서 "Edit Cloudflare Workers" 템플릿 + D1(read/write)로 생성하고, zone은 `dwoobae.com` 하나로 제한했다. GitHub 저장소 `dongwoobae/portfolio`의 Repository secrets에 **`CLOUDFLARE_API_TOKEN`**으로 등록 완료(`gh secret list` 확인).
+- [x] **Next.js 스캐폴드 생성** — Task 1 참고 (완료).
+- [x] **런타임** — Node v24.15.0, npm 11.12.1.
 
-- [x] **도메인** — `dwoobae.com` (Cloudflare Registrar, 2026-07 등록). Cloudflare 대시보드에 zone이 활성 상태여야 한다.
-- [ ] **Cloudflare API 토큰 발급** — 아래 "API 토큰 발급 상세" 참고. 생성된 토큰을 GitHub 저장소 `dongwoobae/portfolio` → Settings → Secrets and variables → Actions → New repository secret에 **`CLOUDFLARE_API_TOKEN`** 이름으로 등록.
-- [ ] **Next.js 스캐폴드 생성** — Task 1에 명령과 절차가 있다. 대화형 프롬프트가 있어 사용자가 직접 실행한다.
-- [ ] Node.js 24 이상, npm 설치 확인 (`node -v`)
+**Task 2부터 바로 시작할 수 있다.**
 
 Account ID는 `1dafd4cb9889ab12c13852360fadf60f`를 사용한다 (대시보드 URL에 노출되는 공개값이라 저장소에 평문으로 둔다 — CI가 필요한 시크릿은 API 토큰 하나뿐).
 
