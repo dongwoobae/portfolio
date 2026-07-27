@@ -1,4 +1,4 @@
-# 개인 포트폴리오 웹사이트 (dongwoobae.com) 설계
+# 개인 포트폴리오 웹사이트 (dwoobae.com) 설계
 
 - 작성일: 2026-07-27
 - 상태: 사용자 승인 대기
@@ -25,13 +25,23 @@
 | ---------- | ------------------------------------------------------------------ | -------------------------------------------------- |
 | 프레임워크 | Next.js 16 App Router + TypeScript + Tailwind CSS v4               | 기존 프로젝트와 동일 스택, 콘텐츠에 집중           |
 | 배포       | OpenNext → Cloudflare Workers (`@opennextjs/cloudflare`, wrangler) | 사이트 자체가 DevOps 증명 수단                     |
-| 도메인     | **dongwoobae.com** (Cloudflare Registrar 구매 예정)                |                                                    |
+| 도메인     | **dwoobae.com** (Cloudflare Registrar, 2026-07 등록)               | 1년 후 dongwoobae.com 이전 예정 — 아래 참고        |
 | 콘텐츠     | MDX 파일 기반. frontmatter는 zod로 빌드타임 검증                   | DB 불필요, git이 곧 CMS                            |
 | 지표 저장  | Cloudflare D1 (3차 단계에서 도입)                                  | Workers Cron 헬스체크 결과 적재                    |
 | CI/CD      | GitHub Actions: lint → typecheck → test → wrangler deploy          | 푸터에 "이 사이트도 이렇게 배포됩니다" 링크로 어필 |
 
 - 관리자 페이지 없음. 콘텐츠는 git push로 관리한다 (YAGNI).
 - 인증·세션 없음. 전 페이지 공개.
+
+### 도메인 이전 계획 (2027-07)
+
+`dongwoobae.com`을 사려다 `dwoobae.com`을 등록했고 Cloudflare Registrar는 환불을 하지 않는다. 1년간 `dwoobae.com`으로 운영하고 2027-07 갱신 시점에 `dongwoobae.com`으로 옮긴다.
+
+이전 시 URL이 바뀌므로 설계에 다음을 반영한다.
+
+- **사이트 URL을 코드에 하드코딩하지 않는다.** `NEXT_PUBLIC_SITE_URL` 환경변수를 단일 출처로 삼고, sitemap·JSON-LD·OG·canonical이 모두 이 값을 참조한다. 도메인 이전은 환경변수와 `wrangler.jsonc`의 routes만 바꾸면 되도록 한다.
+- **끊어진 링크 위험:** 지원서·이력서에 적어 배포한 `dwoobae.com` 링크는 도메인을 놓는 순간 죽는다. 이전 시점에 **두 도메인을 1년 겹쳐 보유하고 `dwoobae.com` → `dongwoobae.com` 301 리다이렉트**를 걸어두는 것을 권한다(연 1~2만 원 수준). Cloudflare Redirect Rule로 처리하면 Worker 코드 변경이 필요 없다.
+- 이전 전까지는 `dwoobae.com`으로 외부 백링크를 적극적으로 쌓지 않는다. 검색 유입보다 지원서에 직접 링크를 넣는 용도가 주력이므로 실익이 크지 않다.
 
 ## 3. 정보 구조 (IA)
 
@@ -166,7 +176,7 @@
 - 포지셔닝: 백엔드 중심 풀스택 + DevOps 관점
 - 콘텐츠: 케이스 스터디 + 딥다이브 노트 + About 타임라인 + (3차) 운영 지표 라이브
 - 스택: Next.js + OpenNext + Cloudflare Workers
-- 도메인: dongwoobae.com
+- 도메인: dwoobae.com (2026-07 등록). dongwoobae.com을 사려다 오등록했고 환불 불가 — 2027-07에 이전하며, 그때 1년 겹쳐 보유해 301 리다이렉트를 건다
 - 저장소: `c:\Users\servi\projects\portfolio` → GitHub `dongwoobae/portfolio`
 - 제로베이스 FE 포트폴리오 아티클 반영 (2026-07-27): 커스텀 도메인, 이름 기반 브랜딩, 라이브 링크 버튼 필수, 장식성 애니메이션 자제, 회고 포함
 - 제로베이스 BE 포트폴리오 아티클 반영 (2026-07-27): 기술 스택 초반 배치, 프로젝트 요약(역할·기여도 명시), 시스템 아키텍처 + API 설계 구조 시각화, 실제 서비스 스크린샷, 백엔드 포트폴리오는 깔끔·심플 디자인 관례

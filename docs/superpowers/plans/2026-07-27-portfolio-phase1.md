@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** dongwoobae.com에 홈·프로젝트 목록·케이스 스터디 2편·About을 배포하고, 첫 커밋부터 CI/CD와 품질 게이트가 동작하는 상태를 만든다.
+**Goal:** dwoobae.com에 홈·프로젝트 목록·케이스 스터디 2편·About을 배포하고, 첫 커밋부터 CI/CD와 품질 게이트가 동작하는 상태를 만든다.
 
 **Architecture:** Next.js 16 App Router를 OpenNext로 번들해 Cloudflare Workers에 배포한다. 콘텐츠는 DB 없이 파일 기반 — 프로젝트 메타데이터는 zod로 검증하는 TypeScript 모듈(`src/content/projects/meta.ts`), 본문은 같은 디렉터리의 MDX. 목록 페이지는 메타만 읽고, 상세 페이지는 `generateStaticParams` + `dynamicParams = false`로 정적 생성하며 slug에 해당하는 MDX를 동적 import한다. 관리자·인증·DB 없음.
 
@@ -16,11 +16,14 @@
 
 이 계획은 아래가 준비된 상태를 전제한다. 에이전트가 대신할 수 없다.
 
-- [ ] **도메인 구매** — Cloudflare Registrar에서 `dongwoobae.com` 등록 (또는 외부 등록 후 Cloudflare로 네임서버 이전). Cloudflare 대시보드에 zone이 활성 상태여야 한다.
+- [x] **도메인** — `dwoobae.com` (Cloudflare Registrar, 2026-07 등록). Cloudflare 대시보드에 zone이 활성 상태여야 한다.
 - [ ] **Cloudflare API 토큰 발급** — 대시보드 → My Profile → API Tokens → Create Token → "Edit Cloudflare Workers" 템플릿. 생성된 토큰을 GitHub 저장소 `dongwoobae/portfolio` → Settings → Secrets and variables → Actions → New repository secret에 **`CLOUDFLARE_API_TOKEN`** 이름으로 등록.
+- [ ] **Next.js 스캐폴드 생성** — Task 1에 명령과 절차가 있다. 대화형 프롬프트가 있어 사용자가 직접 실행한다.
 - [ ] Node.js 24 이상, npm 설치 확인 (`node -v`)
 
 Account ID는 `1dafd4cb9889ab12c13852360fadf60f`를 사용한다 (대시보드 URL에 노출되는 공개값이라 저장소에 평문으로 둔다 — CI가 필요한 시크릿은 API 토큰 하나뿐).
+
+**도메인 주의:** `dongwoobae.com`을 사려다 `dwoobae.com`을 등록했고 환불이 안 된다. 2027-07에 이전할 예정이므로 **사이트 URL을 코드에 하드코딩하지 않는다.** `NEXT_PUBLIC_SITE_URL`을 단일 출처로 쓰고, 도메인 교체가 환경변수와 `wrangler.jsonc` routes 수정만으로 끝나게 한다.
 
 ---
 
@@ -103,21 +106,71 @@ portfolio/
 
 # Phase 0 — 인프라 관통
 
-## Task 1: 프로젝트 스캐폴드
+## Task 1 (사용자): create-next-app 실행
 
-`create-next-app`은 대화형 프롬프트가 있어 에이전트 실행 중 멈출 수 있다. 파일을 직접 생성한다. 버전은 4번 프로젝트에서 검증된 조합을 그대로 쓴다.
+대화형 프롬프트가 있어 **사용자가 직접 실행**한다. 에이전트는 Task 2부터 이어받는다.
+
+- [ ] **Step 1: 저장소 루트에서 스캐폴드 생성**
+
+`c:\Users\servi\projects\portfolio`에서 실행한다. 이 디렉터리에는 `.git`과 `docs/`만 있고 create-next-app이 만드는 파일과 겹치지 않으므로 제자리에서 실행할 수 있다.
+
+```bash
+npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm
+```
+
+프롬프트가 뜨면 위 플래그와 같은 값을 고른다. Turbopack 사용 여부를 물으면 **아무거나 골라도 된다** — 배포 빌드는 Task 2에서 `--webpack`으로 고정하고, 개발 서버만 영향받는다.
+
+> 디렉터리가 비어 있지 않다고 거부하면, 빈 임시 폴더에 만든 뒤 내용물(`.git` 제외)을 `portfolio/`로 복사한다.
+
+- [ ] **Step 2: 생성 결과 확인**
+
+```bash
+npm run dev
+```
+
+`http://localhost:3000`에 Next.js 기본 페이지가 보이면 성공이다. 확인 후 종료한다.
+
+- [ ] **Step 3: 커밋**
+
+```bash
+git add -A
+git commit -m "chore: create-next-app 스캐폴드"
+```
+
+여기까지 하고 에이전트에게 넘긴다.
+
+---
+
+## Task 2: 스캐폴드 정비 (의존성·설정·디자인 토큰)
+
+create-next-app 결과물을 이 프로젝트의 요구에 맞게 조정한다. 버전은 4번 프로젝트에서 검증된 조합을 쓴다.
 
 **Files:**
-- Create: `package.json`, `tsconfig.json`, `postcss.config.mjs`, `eslint.config.mjs`, `.prettierrc`, `.gitignore`
-- Create: `src/app/layout.tsx`, `src/app/globals.css`, `src/app/page.tsx`
+- Modify: `package.json`, `eslint.config.mjs`, `src/app/layout.tsx`, `src/app/globals.css`, `src/app/page.tsx`
+- Create: `.prettierrc`
+- Modify: `.gitignore`
 
-- [ ] **Step 1: package.json 생성**
+- [ ] **Step 1: 현재 스캐폴드 상태 확인**
+
+```bash
+cat package.json
+ls -a
+```
+
+create-next-app 버전에 따라 파일 구성이 다를 수 있다. 아래 스텝은 **이미 있는 것은 건너뛰고 없는 것만** 반영한다.
+
+- [ ] **Step 2: 추가 의존성 설치**
+
+```bash
+npm install @mdx-js/loader @mdx-js/react @next/mdx @opennextjs/cloudflare zod
+npm install -D @cloudflare/workers-types @playwright/test @types/mdx prettier prettier-plugin-tailwindcss vitest wrangler
+```
+
+- [ ] **Step 3: package.json scripts 교체**
+
+`scripts` 블록 전체를 아래로 바꾼다. create-next-app이 넣은 `dev`/`build`/`start`/`lint`는 유지하고 나머지를 추가하는 형태다.
 
 ```json
-{
-  "name": "portfolio",
-  "version": "0.1.0",
-  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -134,84 +187,21 @@ portfolio/
     "deploy": "npm run build:worker && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
-  "dependencies": {
-    "@mdx-js/loader": "^3.1.2",
-    "@mdx-js/react": "^3.1.2",
-    "@next/mdx": "16.2.10",
-    "@opennextjs/cloudflare": "^1.20.1",
-    "next": "16.2.10",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "zod": "4.4.3"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "4.20260702.1",
-    "@playwright/test": "1.61.1",
-    "@tailwindcss/postcss": "^4",
-    "@types/mdx": "^2.0.13",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.10",
-    "prettier": "^3.9.4",
-    "prettier-plugin-tailwindcss": "^0.8.0",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "4.1.10",
-    "wrangler": "^4.107.0"
-  }
-}
 ```
 
-- [ ] **Step 2: tsconfig.json 생성**
+- [ ] **Step 4: Prettier 설정 생성**
+
+`.prettierrc`:
 
 ```json
 {
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [{ "name": "next" }],
-    "paths": { "@/*": ["./src/*"] }
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
-  ],
-  "exclude": ["node_modules"]
+  "plugins": ["prettier-plugin-tailwindcss"]
 }
 ```
 
-- [ ] **Step 3: 빌드 도구 설정 파일 생성**
+- [ ] **Step 5: ESLint에 빌드 산출물 ignore 추가**
 
-`postcss.config.mjs`:
-
-```js
-const config = {
-  plugins: {
-    "@tailwindcss/postcss": {},
-  },
-};
-
-export default config;
-```
-
-`eslint.config.mjs`:
+`eslint.config.mjs`의 `globalIgnores` 목록(없으면 아래 형태로 새로 작성)에 OpenNext 산출물을 넣는다. 생성 코드라 린트 대상이 아니다.
 
 ```js
 import { defineConfig, globalIgnores } from "eslint/config";
@@ -236,38 +226,23 @@ const eslintConfig = defineConfig([
 export default eslintConfig;
 ```
 
-`.prettierrc`:
+- [ ] **Step 6: .gitignore에 항목 추가**
 
-```json
-{
-  "plugins": ["prettier-plugin-tailwindcss"]
-}
-```
-
-`.gitignore`:
+기존 내용 끝에 아래를 덧붙인다 (중복은 무시해도 무방하다).
 
 ```gitignore
-node_modules
-.next
 .next-e2e
-out
-build
 .open-next
 .wrangler
-.env
-.env.local
 .dev.vars
 cloudflare-env.d.ts
-next-env.d.ts
 test-results
 playwright-report
-*.log
-.DS_Store
 ```
 
-- [ ] **Step 4: 디자인 토큰과 전역 스타일 생성**
+- [ ] **Step 7: 디자인 토큰과 전역 스타일 교체**
 
-`src/app/globals.css` — stone 계열 뉴트럴 + 인디고 액센트. 다른 4개 프로젝트(네이비/블루/웜그린)와 겹치지 않게 고른 팔레트다. 다크 모드는 1차 범위 외.
+`src/app/globals.css` **전체를 아래로 교체**한다 (create-next-app이 넣은 기본 변수·다크모드 블록은 지운다). stone 계열 뉴트럴 + 인디고 액센트로, 다른 4개 프로젝트(네이비/블루/웜그린)와 겹치지 않게 고른 팔레트다. 다크 모드는 1차 범위 외.
 
 ```css
 @import "tailwindcss";
@@ -312,9 +287,9 @@ body {
 }
 ```
 
-- [ ] **Step 5: 루트 레이아웃과 임시 홈 생성**
+- [ ] **Step 8: 루트 레이아웃과 임시 홈 교체**
 
-`src/app/layout.tsx`:
+`src/app/layout.tsx` **전체 교체** (create-next-app의 Geist 폰트 설정을 대체한다):
 
 ```tsx
 import type { Metadata } from "next";
@@ -352,7 +327,7 @@ export default function RootLayout({
 }
 ```
 
-`src/app/page.tsx` — 파이프라인 관통 확인용 임시 페이지. Task 13에서 교체한다.
+`src/app/page.tsx` **전체 교체** — 파이프라인 관통 확인용 임시 페이지다. Task 14에서 진짜 홈으로 바꾼다.
 
 ```tsx
 export default function HomePage() {
@@ -365,25 +340,31 @@ export default function HomePage() {
 }
 ```
 
-- [ ] **Step 6: 설치하고 개발 서버가 뜨는지 확인**
+create-next-app이 만든 `public/*.svg`(next.svg, vercel.svg 등)는 쓰지 않으므로 삭제한다.
 
 ```bash
-npm install
+rm -f public/*.svg
+```
+
+- [ ] **Step 9: 개발 서버로 확인**
+
+```bash
 npm run dev
 ```
 
-기대: `http://localhost:3000`에서 "배동우"가 보인다. 확인 후 서버를 종료한다.
+기대: `http://localhost:3000`에서 "배동우"가 보이고, 배경이 아이보리(`#fafaf9`)다. 확인 후 종료.
 
-- [ ] **Step 7: 커밋**
+- [ ] **Step 10: 커밋**
 
 ```bash
+npm run format
 git add -A
-git commit -m "chore: Next.js 16 + TypeScript + Tailwind v4 스캐폴드"
+git commit -m "chore: 의존성·설정 정비 및 디자인 토큰 적용"
 ```
 
 ---
 
-## Task 2: OpenNext + Workers 설정
+## Task 3: OpenNext + Workers 설정
 
 **Files:**
 - Create: `next.config.ts`, `open-next.config.ts`, `wrangler.jsonc`
@@ -444,7 +425,7 @@ export default defineCloudflareConfig({});
 
 - [ ] **Step 3: wrangler.jsonc 생성**
 
-커스텀 도메인 라우트는 zone이 활성화된 뒤에 넣는다. 지금은 주석으로 두고 Task 5에서 해제한다.
+커스텀 도메인 라우트는 zone이 활성화된 뒤에 넣는다. 지금은 주석으로 두고 Task 6에서 해제한다.
 
 ```jsonc
 {
@@ -467,8 +448,8 @@ export default defineCloudflareConfig({});
   },
   // 도메인 zone 활성화 후 주석 해제 (Task 5)
   // "routes": [
-  //   { "pattern": "dongwoobae.com", "custom_domain": true },
-  //   { "pattern": "www.dongwoobae.com", "custom_domain": true },
+  //   { "pattern": "dwoobae.com", "custom_domain": true },
+  //   { "pattern": "www.dwoobae.com", "custom_domain": true },
   // ],
 }
 ```
@@ -490,7 +471,7 @@ git commit -m "feat: OpenNext + Cloudflare Workers 배포 설정"
 
 ---
 
-## Task 3: 수동 배포로 파이프라인 관통
+## Task 4: 수동 배포로 파이프라인 관통
 
 CI를 붙이기 전에 손으로 한 번 배포해 본다. 실패 지점을 CI 로그가 아니라 로컬 터미널에서 보기 위해서다.
 
@@ -527,9 +508,9 @@ git commit -m "chore: 첫 Workers 배포 확인"
 
 ---
 
-## Task 4: GitHub Actions CI/CD
+## Task 5: GitHub Actions CI/CD
 
-품질 게이트(test·e2e)는 아직 없으므로 이 단계에서는 lint·format·typecheck·build·deploy만 넣고, Task 6·7에서 test와 e2e 스텝을 추가한다.
+품질 게이트(test·e2e)는 아직 없으므로 이 단계에서는 lint·format·typecheck·build·deploy만 넣고, Task 7·8에서 test와 e2e 스텝을 추가한다.
 
 **Files:**
 - Create: `.github/workflows/ci.yml`
@@ -622,9 +603,9 @@ gh run watch
 
 ---
 
-## Task 5: 커스텀 도메인 연결
+## Task 6: 커스텀 도메인 연결
 
-**사전 조건:** Cloudflare 대시보드에 `dongwoobae.com` zone이 활성 상태여야 한다.
+**사전 조건:** Cloudflare 대시보드에 `dwoobae.com` zone이 활성 상태여야 한다.
 
 **Files:**
 - Modify: `wrangler.jsonc` (routes 주석 해제)
@@ -637,8 +618,8 @@ gh run watch
     "binding": "IMAGES",
   },
   "routes": [
-    { "pattern": "dongwoobae.com", "custom_domain": true },
-    { "pattern": "www.dongwoobae.com", "custom_domain": true },
+    { "pattern": "dwoobae.com", "custom_domain": true },
+    { "pattern": "www.dwoobae.com", "custom_domain": true },
   ],
 }
 ```
@@ -649,7 +630,7 @@ gh run watch
 
 ```env
 # 절대 URL 생성 기준 (sitemap, OG 이미지, JSON-LD)
-NEXT_PUBLIC_SITE_URL=https://dongwoobae.com
+NEXT_PUBLIC_SITE_URL=https://dwoobae.com
 ```
 
 - [ ] **Step 3: 로컬 .env.local 생성**
@@ -664,13 +645,13 @@ cp .env.example .env.local
 npm run deploy
 ```
 
-기대: `https://dongwoobae.com`에서 홈이 보인다. DNS 전파에 몇 분 걸릴 수 있다. 502/525가 나면 대시보드 → Workers & Pages → 해당 Worker → Settings → Domains & Routes에서 도메인이 등록됐는지 확인한다.
+기대: `https://dwoobae.com`에서 홈이 보인다. DNS 전파에 몇 분 걸릴 수 있다. 502/525가 나면 대시보드 → Workers & Pages → 해당 Worker → Settings → Domains & Routes에서 도메인이 등록됐는지 확인한다.
 
 - [ ] **Step 5: 커밋**
 
 ```bash
 git add -A
-git commit -m "feat: dongwoobae.com 커스텀 도메인 연결"
+git commit -m "feat: dwoobae.com 커스텀 도메인 연결"
 git push
 ```
 
@@ -680,7 +661,7 @@ git push
 
 콘텐츠가 0줄인 지금 테스트 인프라를 붙인다. 이 순서 자체가 포트폴리오의 주장("시작하는 날 검증 체계부터")을 `git log`로 증명한다.
 
-## Task 6: Vitest + 첫 단위 테스트
+## Task 7: Vitest + 첫 단위 테스트
 
 포맷터를 TDD로 만들면서 테스트 인프라를 검증한다.
 
@@ -847,7 +828,7 @@ git commit -m "test: Vitest 도입 + 기간·상태 포맷터 (TDD)"
 
 ---
 
-## Task 7: Playwright 스모크 E2E
+## Task 8: Playwright 스모크 E2E
 
 **Files:**
 - Create: `playwright.config.ts`, `e2e/smoke.spec.ts`
@@ -995,7 +976,7 @@ gh run watch
 
 # Phase 2 — 콘텐츠 파이프라인
 
-## Task 8: MDX 설정과 타입 선언
+## Task 9: MDX 설정과 타입 선언
 
 **Files:**
 - Create: `mdx-components.tsx`, `src/types/mdx.d.ts`
@@ -1074,7 +1055,7 @@ git commit -m "feat: MDX 렌더링 설정 (@next/mdx + 컴포넌트 매핑)"
 
 ---
 
-## Task 9: 프로젝트 메타 레지스트리 (TDD)
+## Task 10: 프로젝트 메타 레지스트리 (TDD)
 
 **Files:**
 - Create: `src/content/projects/meta.ts`, `src/content/projects/meta.test.ts`
@@ -1328,7 +1309,7 @@ git commit -m "feat: 프로젝트 메타 레지스트리 + zod 빌드타임 검�
 
 # Phase 3 — 페이지
 
-## Task 10: 레이아웃 (헤더·푸터)
+## Task 11: 레이아웃 (헤더·푸터)
 
 **Files:**
 - Create: `src/lib/site.ts`, `src/components/layout/SiteHeader.tsx`, `src/components/layout/SiteFooter.tsx`
@@ -1344,7 +1325,7 @@ export const site = {
   role: "백엔드 중심 풀스택 개발자",
   tagline:
     "실사용자가 있는 서비스를 수주부터 설계·개발·운영까지 혼자 책임집니다.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://dongwoobae.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://dwoobae.com",
   email: "dw5817@gmail.com",
   github: "https://github.com/dongwoobae",
   repoUrl: "https://github.com/dongwoobae/portfolio",
@@ -1471,7 +1452,7 @@ git commit -m "feat: 사이트 레이아웃 (헤더·푸터·본문 바로가기
 
 ---
 
-## Task 11: 프로젝트 목록 페이지
+## Task 12: 프로젝트 목록 페이지
 
 **Files:**
 - Create: `src/components/project/StatusBadge.tsx`, `src/components/project/ProjectCard.tsx`, `src/app/projects/page.tsx`
@@ -1653,9 +1634,9 @@ git commit -m "feat: 프로젝트 목록 페이지 (착수 순 정렬 + 라이�
 
 ---
 
-## Task 12: 케이스 스터디 상세 라우트
+## Task 13: 케이스 스터디 상세 라우트
 
-본문 MDX는 Task 14에서 쓴다. 여기서는 라우트와 메타 바만 만들고, 최소 MDX 2개로 동작을 확인한다.
+본문 MDX는 Task 15에서 쓴다. 여기서는 라우트와 메타 바만 만들고, 최소 MDX 2개로 동작을 확인한다.
 
 **Files:**
 - Create: `src/components/project/ProjectMetaBar.tsx`, `src/app/projects/[slug]/page.tsx`
@@ -1742,7 +1723,7 @@ export function ProjectMetaBar({ project }: { project: ProjectMeta }) {
 ```mdx
 ## 배경
 
-교회 홈페이지 제작 의뢰를 받았습니다. 본문은 Task 14에서 작성합니다.
+교회 홈페이지 제작 의뢰를 받았습니다. 본문은 Task 15에서 작성합니다.
 ```
 
 `src/content/projects/ankang-welfare.mdx`:
@@ -1750,7 +1731,7 @@ export function ProjectMetaBar({ project }: { project: ProjectMeta }) {
 ```mdx
 ## 배경
 
-노인복지센터 홈페이지 제작 의뢰를 받았습니다. 본문은 Task 14에서 작성합니다.
+노인복지센터 홈페이지 제작 의뢰를 받았습니다. 본문은 Task 15에서 작성합니다.
 ```
 
 - [ ] **Step 3: 상세 라우트 작성**
@@ -1860,7 +1841,7 @@ git commit -m "feat: 케이스 스터디 상세 라우트 (정적 생성 + MDX �
 
 ---
 
-## Task 13: 홈
+## Task 14: 홈
 
 **Files:**
 - Create: `src/components/home/Hero.tsx`, `src/components/home/DevMethod.tsx`, `src/components/home/GrowthNarrative.tsx`
@@ -2134,7 +2115,7 @@ git commit -m "feat: 홈 (히어로·개발 방식·기술 스택·성장 서사
 
 ---
 
-## Task 14: 케이스 스터디 본문 2편
+## Task 15: 케이스 스터디 본문 2편
 
 스펙 §4의 12단계 템플릿을 따른다. 소재는 각 저장소 README와 `git log --grep="^fix"`에서 가져온다.
 
@@ -2262,7 +2243,7 @@ git commit -m "docs: 케이스 스터디 본문 2편 (영천중앙교회·안강
 
 ---
 
-## Task 15: About 페이지
+## Task 16: About 페이지
 
 **Files:**
 - Create: `src/app/about/page.tsx`
@@ -2393,7 +2374,7 @@ git commit -m "feat: About 페이지 (배경·프로젝트 타임라인·연락)
 
 # Phase 4 — SEO와 마무리
 
-## Task 16: SEO (sitemap·robots·메타데이터·JSON-LD)
+## Task 17: SEO (sitemap·robots·메타데이터·JSON-LD)
 
 **Files:**
 - Create: `src/app/sitemap.ts`, `src/app/robots.ts`
@@ -2520,7 +2501,7 @@ git commit -m "feat: SEO (sitemap·robots·OG 메타데이터·JSON-LD Person)"
 
 ---
 
-## Task 17: 최종 검증과 릴리스
+## Task 18: 최종 검증과 릴리스
 
 **Files:**
 - Create: `README.md`
@@ -2528,7 +2509,7 @@ git commit -m "feat: SEO (sitemap·robots·OG 메타데이터·JSON-LD Person)"
 - [ ] **Step 1: 저장소 README 작성**
 
 ```markdown
-# dongwoobae.com
+# dwoobae.com
 
 > 개인 포트폴리오 웹사이트
 
@@ -2605,7 +2586,7 @@ gh run watch
 
 - [ ] **Step 6: 라이브 사이트 최종 확인**
 
-`https://dongwoobae.com`에서 아래를 확인한다.
+`https://dwoobae.com`에서 아래를 확인한다.
 
 - 홈: 히어로 · 운영 중 서비스 링크 2개 · 개발 방식 · 성장 서사 표 · 대표 케이스 2개
 - `/projects`: 5개 프로젝트가 착수 순으로, 각 카드에 상태 배지와 기간
@@ -2616,7 +2597,7 @@ gh run watch
 
 - [ ] **Step 7: Google Search Console에 sitemap 제출**
 
-`https://dongwoobae.com/sitemap.xml`을 등록한다. (사용자 직접 수행)
+`https://dwoobae.com/sitemap.xml`을 등록한다. (사용자 직접 수행)
 
 ---
 
@@ -2624,12 +2605,20 @@ gh run watch
 
 1차 릴리스는 아래를 모두 만족하면 완료다.
 
-- [ ] `https://dongwoobae.com`이 커스텀 도메인으로 서빙된다
+- [ ] `https://dwoobae.com`이 커스텀 도메인으로 서빙된다
 - [ ] 홈·프로젝트 목록·케이스 스터디 2편·About·404가 모두 동작한다
 - [ ] `main` push가 CI 게이트(lint·format·typecheck·test·e2e)를 통과해야만 자동 배포된다
 - [ ] 단위 테스트 16개 이상, E2E 7개 이상이 통과한다
 - [ ] sitemap·robots·OG 메타데이터·JSON-LD가 서빙된다
 - [ ] 모바일 폭에서 가로 스크롤이 없다
+
+## 도메인 이전 대비 (2027-07)
+
+`dwoobae.com`은 오등록한 도메인이라 1년 뒤 `dongwoobae.com`으로 옮긴다. 그때 손댈 곳이 아래 세 군데뿐이 되도록 이번 구현에서 지켜야 할 것들이다.
+
+- 사이트 URL은 `NEXT_PUBLIC_SITE_URL` 하나만 본다. `src/lib/site.ts`의 `site.url`이 유일한 소비 지점이고, sitemap·robots·JSON-LD·OG는 모두 `site.url`을 경유한다. **컴포넌트나 MDX에 절대 URL을 직접 쓰지 않는다.**
+- 이전 시 변경 지점: ① Cloudflare에서 새 zone 추가 ② `wrangler.jsonc`의 `routes` ③ `.env.local`과 Cloudflare 환경변수의 `NEXT_PUBLIC_SITE_URL`.
+- **끊어진 링크 주의:** 지원서·이력서에 적어둔 `dwoobae.com` 링크는 도메인을 놓는 순간 죽는다. 이전 시점에 두 도메인을 1년 겹쳐 보유하고 Cloudflare Redirect Rule로 `dwoobae.com` → `dongwoobae.com` 301을 걸어두는 것을 권한다 (Worker 코드 변경 불필요).
 
 ## 다음 단계 (범위 외)
 
