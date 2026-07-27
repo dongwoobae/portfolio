@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Noto_Sans_KR } from "next/font/google";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import "./globals.css";
 
 const notoSansKr = Noto_Sans_KR({
@@ -28,7 +30,15 @@ export default function RootLayout({
       <body
         className={`${notoSansKr.variable} ${jetbrainsMono.variable} font-sans`}
       >
-        {children}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-20 focus:rounded focus:bg-ink focus:px-4 focus:py-2 focus:text-page"
+        >
+          본문 바로가기
+        </a>
+        <SiteHeader />
+        <div id="main">{children}</div>
+        <SiteFooter />
       </body>
     </html>
   );
