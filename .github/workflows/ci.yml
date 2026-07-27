@@ -47,6 +47,20 @@ jobs:
       - name: Test (vitest)
         run: npm test
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E (playwright)
+        run: npm run e2e
+
+      - name: Upload E2E artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
+
       - name: Build worker (next build --webpack → OpenNext bundle)
         run: npm run build:worker
 
