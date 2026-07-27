@@ -7,7 +7,7 @@ export const stackLines = [
   { label: "Backend", value: "Java · Spring Boot · NestJS" },
   { label: "Frontend", value: "TypeScript · Next.js · React" },
   { label: "Data", value: "MySQL · Supabase · Neon" },
-  { label: "Infra", value: "Docker · Vercel · GH Actions" },
+  { label: "Infra", value: "Cloudflare · Vercel · GH Actions" },
 ] as const;
 
 export const career = [
@@ -22,7 +22,7 @@ export const career = [
     period: "2024.03–09",
     current: false,
     title: "네이버클라우드 데브옵스 과정",
-    description: "· 클라우드 기반 웹 개발자 과정 수료",
+    description: "· 클라우드 기반 웹 개발자 과정 수료 · NCA·NCP 자격 취득",
   },
   {
     period: "— 2024",
