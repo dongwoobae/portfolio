@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JetBrains_Mono, Noto_Sans_KR } from "next/font/google";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { site } from "@/lib/site";
 import "./globals.css";
 
 const notoSansKr = Noto_Sans_KR({
@@ -17,9 +18,20 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "배동우 | 백엔드 중심 풀스택 개발자",
-  description:
-    "실사용자가 있는 서비스를 수주부터 설계·개발·운영까지 혼자 책임지는 백엔드 중심 풀스택 개발자입니다.",
+  metadataBase: new URL(site.url),
+  title: {
+    default: `${site.name} | ${site.role}`,
+    template: `%s | ${site.name}`,
+  },
+  description: site.tagline,
+  openGraph: {
+    title: `${site.name} | ${site.role}`,
+    description: site.tagline,
+    siteName: site.name,
+    locale: "ko_KR",
+    type: "website",
+    url: site.url,
+  },
 };
 
 export default function RootLayout({
@@ -30,6 +42,20 @@ export default function RootLayout({
       <body
         className={`${notoSansKr.variable} ${jetbrainsMono.variable} font-sans`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Person",
+              name: site.name,
+              jobTitle: site.role,
+              url: site.url,
+              email: site.email,
+              sameAs: [site.github],
+            }),
+          }}
+        />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-20 focus:rounded focus:bg-ink focus:px-4 focus:py-2 focus:text-page"

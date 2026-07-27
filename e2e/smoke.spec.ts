@@ -58,6 +58,16 @@ test("소개 페이지에 배경과 타임라인이 보인다", async ({ page })
   ).toBeVisible();
 });
 
+test("sitemap과 robots가 서빙된다", async ({ page }) => {
+  const sitemap = await page.goto("/sitemap.xml");
+  expect(sitemap?.status()).toBe(200);
+  expect(await sitemap?.text()).toContain("/projects/ycc-church");
+
+  const robots = await page.goto("/robots.txt");
+  expect(robots?.status()).toBe(200);
+  expect(await robots?.text()).toContain("Sitemap:");
+});
+
 // 케이스 스터디 본문의 표·코드 블록은 .prose-scroll 안에서 자체 스크롤해야 하고,
 // 페이지 본문이 가로로 밀리면 안 된다. 3번 프로젝트에서 실제로 났던 회귀다.
 test("375px에서 어느 페이지도 가로로 밀리지 않는다", async ({ page }) => {
