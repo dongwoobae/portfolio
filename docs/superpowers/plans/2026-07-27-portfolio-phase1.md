@@ -122,6 +122,7 @@ Task 2 코드 리뷰에서 드러난 문제와 사용자 추가 요구를 반영
 | 11 | Task 15 Step 6의 375px 가로 넘침 확인을 눈검사 대신 E2E로 고정 (`smoke.spec.ts`) | 3번 프로젝트에 "소개 페이지 모바일 가로 스크롤 제거"(`c4a00e3`) 회귀가 실제로 있었다. 일회성 확인은 재발을 못 막는다 |
 | 12 | Task 6 Step 3의 `cp .env.example .env.local`을 **실행하지 않고** `NEXT_PUBLIC_SITE_URL` 한 줄만 append | 기존 `.env.local`에 Cloudflare API 토큰과 R2 키가 들어 있어 덮어쓰면 소실된다 |
 | 13 | Task 15 스크린샷 4장은 저장소에 없다 (`public/screenshots/README.md`에 규격 명시) | 관리자 화면 2장이 로그인을 요구해 사용자가 직접 캡처하기로 했다. 넣기 전까지 상세 페이지 이미지가 깨진 상태로 렌더된다 |
+| 15 | **`open-next.config.ts`에 `staticAssetsIncrementalCache` 지정** (원안은 `defineCloudflareConfig({})`) | 배포 후 `/projects/ycc-church`, `/projects/ankang-welfare`가 프로덕션에서만 404였다. 응답 헤더가 `x-nextjs-prerender: 1` + `x-nextjs-cache: MISS`. SSG 페이지(●)는 정적 에셋이 아니라 증분 캐시를 거치는데 캐시가 없어 매번 MISS → `dynamicParams = false`와 겹쳐 404. 순수 정적 페이지(○)인 홈·목록·About은 멀쩡해서 로컬 dev·`build:worker`로는 드러나지 않았다 |
 | 14 | `wrangler.jsonc`의 잘못된 주석 2건 수정 — "@cloudflare/workers-types 4.20260702와 정합"(실제 설치본 5.20260727.1)과 "(Task 5)"(정답은 Task 6) | 계획 100~102행에서 예고한 항목 |
 
 **미해결로 남긴 것:**
@@ -509,6 +510,8 @@ import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 // 온디맨드 재검증이 필요해지면 r2IncrementalCache를 추가하고 wrangler에 버킷을 연결한다.
 export default defineCloudflareConfig({});
 ```
+
+> **⚠️ 이 원문은 틀렸다.** 실행 중 배포 후 `/projects/[slug]`가 404로 확인됐다. `generateStaticParams` SSG 페이지(●)는 정적 에셋이 아니라 증분 캐시를 거치므로, 캐시를 지정하지 않으면 매 요청이 MISS로 떨어지고 `dynamicParams = false`와 겹쳐 404가 된다. 실제 파일은 `staticAssetsIncrementalCache`를 지정한다 — 아래 "실행 결과" 15번 항목 참고.
 
 - [ ] **Step 3: wrangler.jsonc 생성**
 
