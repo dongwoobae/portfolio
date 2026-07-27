@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { caseStudies } from "@/content/projects/case-studies";
 import { projects } from "@/content/projects/meta";
 
 describe("프로젝트 메타", () => {
@@ -16,13 +17,16 @@ describe("프로젝트 메타", () => {
     expect(new Set(orders).size).toBe(orders.length);
   });
 
-  it("케이스 스터디가 있는 프로젝트는 라이브 또는 저장소 링크를 갖는다", () => {
-    for (const project of projects.filter((p) => p.hasCaseStudy)) {
-      expect(project.liveUrl ?? project.repoUrl).toBeDefined();
+  it("모든 프로젝트가 상세 페이지 본문을 갖는다", () => {
+    for (const project of projects) {
+      expect(caseStudies[project.slug]).toBeDefined();
     }
   });
 
-  it("1차 릴리스에서는 케이스 스터디 2편만 공개한다", () => {
-    expect(projects.filter((p) => p.hasCaseStudy)).toHaveLength(2);
+  it("본문만 있고 목록에 없는 slug는 없다", () => {
+    const slugs = new Set(projects.map((p) => p.slug));
+    for (const slug of Object.keys(caseStudies)) {
+      expect(slugs.has(slug)).toBe(true);
+    }
   });
 });
