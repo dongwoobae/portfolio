@@ -11,7 +11,7 @@ export function ProjectCard({ project }: { project: ProjectMeta }) {
   });
 
   return (
-    <article className="rounded-lg border border-line bg-surface p-6">
+    <article className="bg-surface rounded-lg border border-line p-6">
       <div className="flex flex-wrap items-center gap-3">
         <StatusBadge status={project.status} />
         <span className="font-mono text-xs text-faint">{period}</span>
@@ -36,7 +36,7 @@ export function ProjectCard({ project }: { project: ProjectMeta }) {
         {project.stack.map((tech) => (
           <li
             key={tech}
-            className="rounded bg-accent-soft px-2 py-0.5 font-mono text-xs text-accent"
+            className="bg-accent-soft rounded px-2 py-0.5 font-mono text-xs text-accent"
           >
             {tech}
           </li>
@@ -47,7 +47,7 @@ export function ProjectCard({ project }: { project: ProjectMeta }) {
         {project.hasCaseStudy && (
           <Link
             href={`/projects/${project.slug}`}
-            className="font-bold text-accent hover:text-accent-hover"
+            className="hover:text-accent-hover font-bold text-accent"
           >
             케이스 스터디 →
           </Link>

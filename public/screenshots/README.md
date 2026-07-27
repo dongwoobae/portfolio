@@ -1,12 +1,18 @@
-# 케이스 스터디 스크린샷
+# 프로젝트 스크린샷
 
-케이스 스터디 MDX의 `<Screenshot />`이 참조하는 파일들이다. **폭 1280px, WebP**로 저장한다.
+상세 페이지(`src/content/projects/case-studies.ts`)가 참조하는 실서비스 화면이다.
+디자인 핸드오프(`design_handoff_portfolio/assets`)에서 그대로 가져온 원본 PNG이며,
+`next/image`가 요청 시점에 리사이즈·WebP 변환한다(Workers의 `IMAGES` 바인딩).
 
-| 파일                       | 화면                                     | 비고                                                         |
-| -------------------------- | ---------------------------------------- | ------------------------------------------------------------ |
-| `ycc-sermon-detail.webp`   | ycjc.kr 설교 상세                        | AI 요약·타임스탬프 챕터가 보이는 상태                        |
-| `ycc-admin-thumbnail.webp` | ycjc.kr 관리자 썸네일 생성               | SSE 진행 표시가 보이는 상태. 로그인 필요                     |
-| `ankang-photo-board.webp`  | sumgim-welfare.com 사진 게시판           | **블러가 적용된 공개본만.** 얼굴이 식별되지 않는지 확인할 것 |
-| `ankang-admin-blur.webp`   | sumgim-welfare.com 관리자 수동 블러 편집 | 로그인 필요                                                  |
+| 프로젝트     | 파일                                                                                         |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| 모두의캠퍼스 | `modu-map` · `modu-admin-buildings` · `modu-facility-add` · `modu-building-detail`           |
+| 안강섬김     | `sumgim-home` · `sumgim-admin-dashboard` · `sumgim-blur-gallery`                             |
+| 영천중앙교회 | `ycc-home` · `ycc-admin-sermons`                                                             |
+| 한약안전사용 | `hmsu-home`                                                                                  |
+| 월드ENC      | `worldeng-home` · `worldeng-admin-booking` · `worldeng-admin-board` · `worldeng-admin-staff` |
 
-파일이 없으면 상세 페이지에서 이미지가 깨진 상태로 렌더된다.
+`*-home` / `modu-map`은 메인 프로젝트 목록의 hover 미리보기에도 쓴다.
+경로가 실제 파일과 어긋나면 `src/content/projects/assets.test.ts`가 깨진다.
+
+사진 게시판 화면(`sumgim-blur-gallery`)은 **얼굴 블러가 적용된 공개본**만 쓴다.

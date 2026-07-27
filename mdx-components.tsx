@@ -20,14 +20,14 @@ const components: MDXComponents = {
   li: (props) => <li className="leading-relaxed" {...props} />,
   a: (props) => (
     <a
-      className="text-accent underline underline-offset-2 hover:text-accent-hover"
+      className="hover:text-accent-hover text-accent underline underline-offset-2"
       {...props}
     />
   ),
   strong: (props) => <strong className="font-bold text-ink" {...props} />,
   code: (props) => (
     <code
-      className="rounded bg-accent-soft px-1.5 py-0.5 font-mono text-[0.9em]"
+      className="bg-accent-soft rounded px-1.5 py-0.5 font-mono text-[0.9em]"
       {...props}
     />
   ),

@@ -10,7 +10,7 @@ export function ProjectMetaBar({ project }: { project: ProjectMeta }) {
   });
 
   return (
-    <div className="rounded-lg border border-line bg-surface p-6">
+    <div className="bg-surface rounded-lg border border-line p-6">
       <StatusBadge status={project.status} />
 
       <dl className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -34,7 +34,7 @@ export function ProjectMetaBar({ project }: { project: ProjectMeta }) {
         {project.stack.map((tech) => (
           <li
             key={tech}
-            className="rounded bg-accent-soft px-2 py-0.5 font-mono text-xs text-accent"
+            className="bg-accent-soft rounded px-2 py-0.5 font-mono text-xs text-accent"
           >
             {tech}
           </li>
@@ -45,7 +45,7 @@ export function ProjectMetaBar({ project }: { project: ProjectMeta }) {
         {project.liveUrl && (
           <a
             href={project.liveUrl}
-            className="rounded bg-accent px-4 py-2 text-sm font-bold text-page hover:bg-accent-hover"
+            className="hover:bg-accent-hover rounded bg-accent px-4 py-2 text-sm font-bold text-page"
             rel="noreferrer"
             target="_blank"
           >

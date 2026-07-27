@@ -10,21 +10,21 @@ export function DevMethod() {
       </p>
 
       <dl className="mt-8 grid gap-6 sm:grid-cols-3">
-        <div className="rounded-lg border border-line bg-surface p-5">
+        <div className="bg-surface rounded-lg border border-line p-5">
           <dt className="text-sm font-bold">동작 고정</dt>
           <dd className="mt-2 text-sm leading-relaxed text-muted">
             Vitest 단위 테스트와 PGlite 인프로세스 DB 통합 테스트로 파이프라인
             로직을 검증합니다.
           </dd>
         </div>
-        <div className="rounded-lg border border-line bg-surface p-5">
+        <div className="bg-surface rounded-lg border border-line p-5">
           <dt className="text-sm font-bold">회귀 방지</dt>
           <dd className="mt-2 text-sm leading-relaxed text-muted">
             Playwright E2E로 관리자 업로드·인증 같은 핵심 흐름을 브라우저에서
             반복 검증합니다.
           </dd>
         </div>
-        <div className="rounded-lg border border-line bg-surface p-5">
+        <div className="bg-surface rounded-lg border border-line p-5">
           <dt className="text-sm font-bold">배포 게이트</dt>
           <dd className="mt-2 text-sm leading-relaxed text-muted">
             GitHub Actions가 lint·타입체크·테스트를 모두 통과해야 배포합니다. 이

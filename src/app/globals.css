@@ -1,24 +1,28 @@
 @import "tailwindcss";
 
+/* 다크 터미널 팔레트. 값은 디자인 핸드오프의 토큰 표를 그대로 옮겼다.
+   대비: accent(#7ee2a8) 11.6:1 / ink 12.5:1 / muted 6.4:1 / tertiary 5.4:1 —
+   본문에 쓰는 색은 page(#0f1216) 대비 WCAG AA(4.5:1)를 넘긴다.
+   faint·ghost는 장식용 모노 라벨·주석 전용이라 본문 텍스트로 쓰지 않는다. */
 @theme {
-  --color-page: #fafaf9;
-  --color-surface: #ffffff;
-  --color-ink: #1c1917;
-  --color-muted: #57534e;
-  /* 텍스트로 쓰이는 토큰은 페이지 배경(--color-page) 대비 WCAG AA(4.5:1)를 지킨다.
-     이 사이트는 접근성 감사를 역량으로 내세우므로 팔레트부터 기준을 맞춘다.
-     faint 4.59:1 / live 4.80:1 / warn 4.81:1 / muted 7.30:1 / accent 6.02:1 */
-  --color-faint: #78716c;
-  --color-line: #e7e5e4;
-  --color-accent: #4f46e5;
-  --color-accent-hover: #4338ca;
-  --color-accent-soft: #eef2ff;
-  --color-live: #15803d;
-  --color-warn: #b45309;
+  --color-page: #0f1216;
+  --color-rail: #0c0f13;
+  --color-card: #12161c;
+  /* 강조 카드 그라데이션의 위쪽 색 (아래는 card) */
+  --color-card-hi: #121915;
+  --color-card-deep: #151b22;
+  --color-line: #262c34;
+  --color-line-accent: #2b4a3a;
+  --color-accent: #7ee2a8;
+  --color-ink: #dfe5ec;
+  --color-muted: #9aa4b2;
+  --color-tertiary: #8b95a3;
+  --color-faint: #5b6572;
+  --color-ghost: #39424d;
 }
 
 @theme inline {
-  --font-sans: var(--font-noto-sans-kr);
+  --font-sans: var(--font-ibm-plex-sans-kr);
   --font-mono: var(--font-jetbrains-mono);
 }
 
@@ -30,9 +34,33 @@
 }
 
 body {
-  background-color: var(--color-page);
+  /* 레일 색이 body 배경이다. 콘텐츠 영역만 한 단계 밝은 page를 깐다. */
+  background-color: var(--color-rail);
   color: var(--color-ink);
+  /* 한국어는 단어 단위로 줄바꿈한다. */
+  word-break: keep-all;
   -webkit-font-smoothing: antialiased;
+}
+
+a:hover {
+  color: var(--color-accent);
+}
+
+::selection {
+  background: var(--color-line-accent);
+  color: var(--color-ink);
+}
+
+/* 히어로 타이핑 커서 */
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
 }
 
 /* 와이드 콘텐츠(표·코드·다이어그램)는 자체 스크롤 컨테이너를 갖는다.

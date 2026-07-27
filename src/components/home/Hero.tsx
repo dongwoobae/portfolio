@@ -37,11 +37,11 @@ export function Hero() {
           <a
             key={project.slug}
             href={project.liveUrl}
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-sm hover:border-ink"
+            className="bg-surface inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm hover:border-ink"
             rel="noreferrer"
             target="_blank"
           >
-            <span aria-hidden className="h-2 w-2 rounded-full bg-live" />
+            <span aria-hidden className="bg-live h-2 w-2 rounded-full" />
             {project.title.replace(" 홈페이지", "")} 운영 중 ↗
           </a>
         ))}
@@ -50,7 +50,7 @@ export function Hero() {
       <div className="mt-8">
         <Link
           href="/projects"
-          className="font-bold text-accent hover:text-accent-hover"
+          className="hover:text-accent-hover font-bold text-accent"
         >
           프로젝트 전체 보기 →
         </Link>
