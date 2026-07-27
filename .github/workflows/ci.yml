@@ -44,6 +44,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Test (vitest)
+        run: npm test
+
       - name: Build worker (next build --webpack → OpenNext bundle)
         run: npm run build:worker
 
