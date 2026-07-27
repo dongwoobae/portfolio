@@ -16,3 +16,19 @@ test("프로젝트 목록에 5개 프로젝트가 착수 순으로 보인다", a
   await expect(page.locator("article")).toHaveCount(5);
   await expect(page.locator("article").first()).toContainText("모두의 캠퍼스");
 });
+
+test("케이스 스터디 상세가 메타와 본문을 보여준다", async ({ page }) => {
+  await page.goto("/projects/ycc-church");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "영천중앙교회",
+  );
+  await expect(
+    page.getByRole("link", { name: /라이브 사이트 보기/ }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "배경" })).toBeVisible();
+});
+
+test("케이스 스터디가 없는 프로젝트는 404다", async ({ page }) => {
+  const response = await page.goto("/projects/herbal-medicine-platform");
+  expect(response?.status()).toBe(404);
+});
