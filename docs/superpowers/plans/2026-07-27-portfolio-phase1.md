@@ -81,6 +81,32 @@ Cloudflare 공식 [Workers CI/CD 가이드](https://developers.cloudflare.com/wo
 
 ---
 
+## 실행 중 반영한 계획 수정 (2026-07-27)
+
+Task 2 코드 리뷰에서 드러난 문제와 사용자 추가 요구를 반영해 계획을 고쳤다. **아래 항목은 이미 저장소에 적용돼 있으므로, 해당 Task를 다시 읽는 사람은 원문이 아니라 이 목록을 기준으로 삼는다.**
+
+| # | 무엇 | 왜 |
+| --- | --- | --- |
+| 1 | `.prettierignore` 신규 (`docs/`, `package-lock.json`) | `prettier --write .`가 이 계획 문서를 518줄 재작성한다. Prettier가 한글을 1문자 폭으로 계산해 마크다운 표 정렬이 오히려 깨진다 |
+| 2 | `.gitignore`에 `!.env.example` 추가 | 기존 `.env*` 패턴이 Task 6이 커밋해야 할 `.env.example`을 삼킨다 |
+| 3 | `.prettierrc`에 `"tailwindStylesheet": "./src/app/globals.css"` 추가 | 없으면 클래스 정렬기가 프로젝트 `@theme` 토큰을 못 읽고 Tailwind 기본 테마로 폴백해, 커스텀 토큰 클래스를 전부 맨 앞으로 민다. Task 11~17에서 수백 개가 추가된 뒤 고치면 전면 재포맷 diff가 난다 |
+| 4 | `eslint.config.mjs` ignore에 `.next-e2e/**` 추가 | Task 8이 만드는 Playwright 전용 빌드 산출물. `.gitignore`에만 넣고 eslint에 빠뜨리면 로컬 `npm run lint`가 생성 코드를 훑는다 |
+| 5 | 팔레트 대비 수정 — `--color-faint` `#a8a29e`→`#78716c`, `--color-live` `#16a34a`→`#15803d`, `--color-warn` `#d97706`→`#b45309` | 원안은 페이지 배경 대비 각각 2.41:1 / 3.20:1 / 3.05:1로 WCAG AA(4.5:1) 미달인데 셋 다 **텍스트**로 쓰인다. 수정 후 4.59 / 4.80 / 4.81:1. 1번 프로젝트가 배리어프리 지도이고 이 사이트가 접근성을 역량으로 내세우므로 팔레트부터 기준을 맞춘다 |
+| 6 | `globals.css`의 `scroll-behavior: smooth`를 `@media (prefers-reduced-motion: no-preference)`로 감쌈 | 전정기관 장애 사용자 고려. 5번과 같은 맥락 |
+| 7 | `globals.css`의 `* { box-sizing: border-box }` 제거 | Tailwind preflight가 이미 더 넓은 셀렉터(`*, ::after, ::before, ::backdrop, ::file-selector-button`)로 설정한다. 완전 중복 |
+| 8 | Task 14 Hero에 프로필 사진 추가 (`public/photo/dongwoo_photo.jpg`) | 사용자 요구. 112px 원형 아바타로 이름 위에 배치. 원본이 354×472라 크게 쓰면 흐려지고, 원형 마스크가 증명사진의 흰 배경 경계를 가린다 |
+| 9 | Task 2 Step 8의 `rm -f public/*.svg` 무효 | Task 1(`eaff5a3`)에서 이미 정리돼 `public/`이 비어 있었다. no-op |
+
+아직 반영하지 않았고 해당 Task에서 처리할 것:
+
+- **Task 3 주석 오류** — `wrangler.jsonc`의 "@cloudflare/workers-types 4.20260702와 정합"은 실제 설치본 5.20260727.1과 어긋난다. 또 461행은 "Task 6에서 해제", 482행 주석은 "(Task 5)"라 서로 다르다. 정답은 **Task 6**이다.
+- **`@cloudflare/workers-types`가 죽은 의존성** — `tsconfig.json`의 `types`에도 triple-slash 참조에도 없다. `wrangler types`가 `cloudflare-env.d.ts`에 런타임 타입을 직접 생성하므로 Cloudflare 공식 권장도 이 패키지 제거다. Task 18에서 정리 여부 결정.
+- **CI에 `cf-typegen` 스텝 없음** — 지금은 바인딩을 쓰는 코드가 없어 무해하지만, `CloudflareEnv`를 참조하는 순간 로컬은 통과하고 CI의 `typecheck`만 실패한다(`cloudflare-env.d.ts`가 gitignore이므로).
+- **dev는 Turbopack, 배포는 webpack** — Task 8의 Playwright `webServer`가 `npm run dev`를 쓰므로 E2E는 Turbopack 산출물을 검증하고 배포는 webpack 산출물이 나간다. 의도된 구조지만, Task 18 최종 검증에 `npm run preview`(webpack+workerd) 대상 스모크를 한 번 포함한다.
+- **`subsets: ["latin"]`은 의도된 것** — Noto Sans KR에 "korean" subset은 애초에 존재하지 않는다(Google이 한글을 번호 unicode-range로 슬라이스). `subsets`는 preload 대상만 정하고 모든 subset 파일은 self-host되므로 한글은 정상 렌더된다. 고칠 것 없음 — 다시 의심하지 말 것.
+
+---
+
 ## 파일 구조
 
 작업이 끝났을 때의 저장소 구조. 각 파일의 책임을 한 줄로 정의한다.
@@ -94,7 +120,8 @@ portfolio/
   wrangler.jsonc                     # Worker 이름·호환성 날짜·assets·커스텀 도메인 라우트
   postcss.config.mjs                 # Tailwind v4 PostCSS 플러그인
   eslint.config.mjs                  # ESLint flat config + 빌드 산출물 ignore
-  .prettierrc                        # Prettier + tailwind 클래스 정렬
+  .prettierrc                        # Prettier + tailwind 클래스 정렬 (tailwindStylesheet 필수)
+  .prettierignore                    # docs/·lockfile 제외 (계획 문서 재포맷 방지)
   vitest.config.ts                   # 단위 테스트 (node 환경, src/**/*.test.ts)
   playwright.config.ts               # E2E (chromium, dev 서버 자동 기동)
   mdx-components.tsx                 # MDX 전역 컴포넌트 매핑 (필수 파일)
@@ -151,6 +178,7 @@ portfolio/
     smoke.spec.ts                    # 전 페이지 렌더 + 링크 + 404 스모크
 
   public/
+    photo/dongwoo_photo.jpg          # 홈 히어로 프로필 사진 (354×472 증명사진)
     screenshots/                     # 케이스 스터디용 서비스 캡처 (WebP)
 ```
 
@@ -1885,6 +1913,7 @@ git commit -m "feat: 케이스 스터디 상세 라우트 (정적 생성 + MDX �
 `src/components/home/Hero.tsx`:
 
 ```tsx
+import Image from "next/image";
 import Link from "next/link";
 import { getProjectsInOrder } from "@/lib/projects";
 import { site } from "@/lib/site";
@@ -1894,7 +1923,20 @@ export function Hero() {
 
   return (
     <section className="border-b border-line py-20">
-      <p className="font-mono text-sm text-accent">{site.role}</p>
+      {/* 원본은 354×472 증명사진이다. 112px 원형이면 2x(224px)에서도 선명하고,
+          흰 배경 경계가 원형 마스크에 가려 아이보리 페이지 배경과 충돌하지 않는다.
+          object-top으로 잘라야 정사각 크롭에서 얼굴이 남는다. */}
+      <div className="relative h-28 w-28 overflow-hidden rounded-full border border-line">
+        <Image
+          src="/photo/dongwoo_photo.jpg"
+          alt="배동우 프로필 사진"
+          fill
+          sizes="112px"
+          priority
+          className="object-cover object-top"
+        />
+      </div>
+      <p className="mt-6 font-mono text-sm text-accent">{site.role}</p>
       <h1 className="mt-4 text-4xl leading-tight font-bold tracking-tight sm:text-5xl">
         {site.name}
       </h1>
@@ -2122,6 +2164,7 @@ export default function HomePage() {
 test("홈에 이름·개발 방식·기술 스택·성장 서사·대표 케이스가 보인다", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("배동우");
+  await expect(page.getByRole("img", { name: "배동우 프로필 사진" })).toBeVisible();
   await expect(page.getByRole("heading", { name: /AI로 빠르게/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: "기술 스택" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "진행하면서 배운 것" })).toBeVisible();

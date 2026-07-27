@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# 필요한 키 목록을 문서화하는 파일이라 커밋한다 (값은 들어가지 않는다).
+!.env.example
 
 # vercel
 .vercel

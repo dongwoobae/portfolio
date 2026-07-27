@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     ".open-next/**",
     ".wrangler/**",
     "cloudflare-env.d.ts",
+    // Playwright 전용 Next 빌드 산출물 (playwright.config.ts의 NEXT_DIST_DIR)
+    ".next-e2e/**",
   ]),
 ]);
 

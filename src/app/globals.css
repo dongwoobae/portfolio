@@ -5,13 +5,16 @@
   --color-surface: #ffffff;
   --color-ink: #1c1917;
   --color-muted: #57534e;
-  --color-faint: #a8a29e;
+  /* 텍스트로 쓰이는 토큰은 페이지 배경(--color-page) 대비 WCAG AA(4.5:1)를 지킨다.
+     이 사이트는 접근성 감사를 역량으로 내세우므로 팔레트부터 기준을 맞춘다.
+     faint 4.59:1 / live 4.80:1 / warn 4.81:1 / muted 7.30:1 / accent 6.02:1 */
+  --color-faint: #78716c;
   --color-line: #e7e5e4;
   --color-accent: #4f46e5;
   --color-accent-hover: #4338ca;
   --color-accent-soft: #eef2ff;
-  --color-live: #16a34a;
-  --color-warn: #d97706;
+  --color-live: #15803d;
+  --color-warn: #b45309;
 }
 
 @theme inline {
@@ -19,12 +22,11 @@
   --font-mono: var(--font-jetbrains-mono);
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
+/* 스크롤 애니메이션을 끄도록 설정한 사용자에게는 적용하지 않는다 (전정기관 장애 고려). */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
