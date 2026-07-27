@@ -1,6 +1,8 @@
 import type { MDXComponents } from "mdx/types";
+import { Screenshot } from "@/components/project/Screenshot";
 
 const components: MDXComponents = {
+  Screenshot,
   h2: (props) => (
     <h2
       className="mt-12 border-t border-line pt-8 text-2xl font-bold"

@@ -48,3 +48,22 @@ test("케이스 스터디가 없는 프로젝트는 404다", async ({ page }) =>
   const response = await page.goto("/projects/herbal-medicine-platform");
   expect(response?.status()).toBe(404);
 });
+
+// 케이스 스터디 본문의 표·코드 블록은 .prose-scroll 안에서 자체 스크롤해야 하고,
+// 페이지 본문이 가로로 밀리면 안 된다. 3번 프로젝트에서 실제로 났던 회귀다.
+test("375px에서 어느 페이지도 가로로 밀리지 않는다", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 });
+
+  for (const path of [
+    "/",
+    "/projects",
+    "/projects/ycc-church",
+    "/projects/ankang-welfare",
+  ]) {
+    await page.goto(path);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
+    expect(overflow, `${path}에서 가로 넘침`).toBeLessThanOrEqual(0);
+  }
+});
