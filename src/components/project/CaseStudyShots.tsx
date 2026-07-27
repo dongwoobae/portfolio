@@ -33,7 +33,7 @@ export function CaseStudyShots({
         const layout = ROW[Math.min(row.length, 3) as 1 | 2 | 3];
         return (
           <div key={index} className={`grid gap-3.5 ${layout.grid}`}>
-            {row.map((shot) => (
+            {row.map((shot, column) => (
               <div
                 key={shot.src}
                 className={`relative overflow-hidden rounded-lg bg-card ${layout.height}`}
@@ -43,6 +43,8 @@ export function CaseStudyShots({
                   alt={shot.alt}
                   fill
                   sizes={layout.sizes}
+                  // 첫 장이 이 페이지의 LCP다. 나머지는 기본값(지연 로드).
+                  priority={index === 0 && column === 0}
                   className="object-cover object-top"
                 />
               </div>

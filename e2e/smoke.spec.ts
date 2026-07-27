@@ -1,85 +1,136 @@
 import { expect, test } from "@playwright/test";
 
-test("홈에 이름·개발 방식·기술 스택·성장 서사·대표 케이스가 보인다", async ({
-  page,
-}) => {
+const PROJECT_SLUGS = [
+  "modu-campus",
+  "ankang-sumgim",
+  "ycc-website",
+  "worldengco",
+  "hmsu",
+];
+
+test("메인에 레일·히어로·전 섹션이 보인다", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("배동우");
+
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("배동우");
   await expect(
     page.getByRole("img", { name: "배동우 프로필 사진" }),
   ).toBeVisible();
+  // 타이핑 중에도 DOM에는 전문이 있어야 한다 (sr-only).
   await expect(
-    page.getByRole("heading", { name: /AI로 빠르게/ }),
-  ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "기술 스택" })).toBeVisible();
+    page.getByRole("heading", { name: "Backend-driven Fullstack Developer" }),
+  ).toBeAttached();
+
+  for (const prompt of [
+    "$ cat perspective.md",
+    "$ git log --career",
+    "$ ls team/",
+  ]) {
+    await expect(page.getByText(prompt, { exact: true })).toBeVisible();
+  }
+  for (const label of ["경력", "하이라이트", "프로젝트", "팀 프로젝트"]) {
+    await expect(
+      page.getByRole("region", { name: label, exact: true }),
+    ).toBeVisible();
+  }
+});
+
+test("메인 프로젝트 목록이 5행이고 상세로 연결된다", async ({ page }) => {
+  await page.goto("/");
+
+  const rows = page
+    .getByRole("region", { name: "프로젝트", exact: true })
+    .getByRole("link");
+  await expect(rows).toHaveCount(5);
+  await expect(rows.first()).toContainText("모두의 캠퍼스");
+
+  await rows.first().click();
+  await expect(page).toHaveURL("/projects/modu-campus");
+});
+
+test("레일 네비가 해당 섹션으로 이동시킨다", async ({ page }) => {
+  await page.goto("/");
+
+  await page
+    .getByRole("navigation", { name: "섹션 바로가기" })
+    .getByRole("link", { name: "projects" })
+    .click();
+  await expect(page).toHaveURL("/#projects");
   await expect(
-    page.getByRole("heading", { name: "진행하면서 배운 것" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "대표 케이스 스터디" }),
-  ).toBeVisible();
-  await expect(page.getByRole("link", { name: /운영 중/ })).toHaveCount(2);
+    page.getByRole("region", { name: "프로젝트", exact: true }),
+  ).toBeInViewport();
+});
+
+test("프로젝트 상세 5장이 모두 뜨고 스크린샷이 로드된다", async ({ page }) => {
+  for (const slug of PROJECT_SLUGS) {
+    const response = await page.goto(`/projects/${slug}`);
+    expect(response?.status(), `${slug} 응답`).toBe(200);
+
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByText(`projects/${slug}`)).toBeVisible();
+
+    // 경로가 틀리거나 최적화가 실패하면 자연 크기가 0으로 남는다.
+    const hero = page.getByRole("img").first();
+    await expect(hero).toBeVisible();
+    await expect
+      .poll(() => hero.evaluate((img: HTMLImageElement) => img.naturalWidth), {
+        message: `${slug} 스크린샷 로드`,
+        timeout: 30_000,
+      })
+      .toBeGreaterThan(0);
+  }
+});
+
+test("상세 이전/다음이 목록 순서대로 순환한다", async ({ page }) => {
+  await page.goto("/projects/modu-campus");
+  // 첫 프로젝트의 이전은 목록(홈)이다.
+  await expect(page.getByRole("link", { name: "← 목록으로" })).toBeVisible();
+
+  await page.getByRole("link", { name: /다음:/ }).click();
+  await expect(page).toHaveURL("/projects/ankang-sumgim");
+
+  await page.goto("/projects/hmsu");
+  // 마지막 프로젝트의 다음도 목록으로 빠진다.
+  await expect(page.getByRole("link", { name: "목록으로 →" })).toBeVisible();
 });
 
 test("없는 경로는 404를 반환한다", async ({ page }) => {
   const response = await page.goto("/no-such-page");
   expect(response?.status()).toBe(404);
+
+  const project = await page.goto("/projects/no-such-project");
+  expect(project?.status()).toBe(404);
 });
 
-test("프로젝트 목록에 5개 프로젝트가 착수 순으로 보인다", async ({ page }) => {
-  await page.goto("/projects");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("프로젝트");
-  await expect(page.locator("article")).toHaveCount(5);
-  await expect(page.locator("article").first()).toContainText("모두의 캠퍼스");
-});
-
-test("케이스 스터디 상세가 메타와 본문을 보여준다", async ({ page }) => {
-  await page.goto("/projects/ycc-church");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "영천중앙교회",
-  );
-  await expect(
-    page.getByRole("link", { name: /라이브 사이트 보기/ }),
-  ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "배경" })).toBeVisible();
-});
-
-test("케이스 스터디가 없는 프로젝트는 404다", async ({ page }) => {
-  const response = await page.goto("/projects/herbal-medicine-platform");
-  expect(response?.status()).toBe(404);
-});
-
-test("소개 페이지에 배경과 타임라인이 보인다", async ({ page }) => {
-  await page.goto("/about");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("소개");
-  await expect(page.getByRole("heading", { name: "배경" })).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "프로젝트 타임라인" }),
-  ).toBeVisible();
+test("옛 URL은 새 위치로 리다이렉트된다", async ({ page }) => {
+  for (const [from, to] of [
+    ["/projects", "/"],
+    ["/about", "/"],
+    ["/projects/ycc-church", "/projects/ycc-website"],
+    ["/projects/ankang-welfare", "/projects/ankang-sumgim"],
+  ]) {
+    await page.goto(from);
+    await expect(page, `${from} → ${to}`).toHaveURL(to);
+  }
 });
 
 test("sitemap과 robots가 서빙된다", async ({ page }) => {
   const sitemap = await page.goto("/sitemap.xml");
   expect(sitemap?.status()).toBe(200);
-  expect(await sitemap?.text()).toContain("/projects/ycc-church");
+  const body = await sitemap?.text();
+  for (const slug of PROJECT_SLUGS) {
+    expect(body).toContain(`/projects/${slug}`);
+  }
 
   const robots = await page.goto("/robots.txt");
   expect(robots?.status()).toBe(200);
   expect(await robots?.text()).toContain("Sitemap:");
 });
 
-// 케이스 스터디 본문의 표·코드 블록은 .prose-scroll 안에서 자체 스크롤해야 하고,
-// 페이지 본문이 가로로 밀리면 안 된다. 3번 프로젝트에서 실제로 났던 회귀다.
+// 레일과 4열 그리드가 좁은 화면에서 접히지 않으면 바로 가로 스크롤이 생긴다.
 test("375px에서 어느 페이지도 가로로 밀리지 않는다", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
 
-  for (const path of [
-    "/",
-    "/projects",
-    "/projects/ycc-church",
-    "/projects/ankang-welfare",
-    "/about",
-  ]) {
+  for (const path of ["/", ...PROJECT_SLUGS.map((s) => `/projects/${s}`)]) {
     await page.goto(path);
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth,
