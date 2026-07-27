@@ -46,7 +46,20 @@ Cloudflare 공식 [Workers CI/CD 가이드](https://developers.cloudflare.com/wo
 | Zone | **Workers Routes (edit)** | **커스텀 도메인 연결에 필수** (Task 6의 `custom_domain: true` routes) |
 | User | User Details (read), Memberships (read) | `wrangler whoami` 등 신원 확인 |
 
-> 3차 릴리스에서 D1을 도입하면 **Account → D1 (edit)** 권한을 추가해야 한다. 그때 토큰을 새로 만들거나 기존 토큰을 수정한다.
+> 3차 릴리스에서 D1을 도입하면 **Account → D1 (edit)** 권한이 필요하다. 처음 만들 때 함께 넣어두면 나중에 토큰을 다시 만들지 않아도 된다.
+
+**⚠️ 계정 소유 토큰의 함정 — `account_id`가 반드시 있어야 한다**
+
+계정 소유 토큰에는 User 스코프가 없다. 그런데 wrangler는 계정을 특정하지 못하면 `/memberships` 엔드포인트를 호출해 소속 계정을 찾으려 하고, 계정 소유 토큰은 그 권한이 없어 **`A request to the Cloudflare API (/memberships) failed`로 배포가 실패한다**([workers-sdk#9129](https://github.com/cloudflare/workers-sdk/issues/9129), 2025-06 종료).
+
+해법은 계정을 명시해 그 조회 자체를 없애는 것이다. 이 프로젝트는 `wrangler.jsonc`에 `account_id`를 박아두므로 이미 해결돼 있다 — **그 필드를 지우면 CI 배포가 깨진다.**
+
+검증된 계정 정보 (`wrangler whoami`, 2026-07-27):
+
+| 항목 | 값 |
+| --- | --- |
+| Account Name | `Dw5817@gmail.com's Account` |
+| Account ID | `1dafd4cb9889ab12c13852360fadf60f` |
 
 **도메인 주의:** `dongwoobae.com`을 사려다 `dwoobae.com`을 등록했고 환불이 안 된다. 2027-07에 이전할 예정이므로 **사이트 URL을 코드에 하드코딩하지 않는다.** `NEXT_PUBLIC_SITE_URL`을 단일 출처로 쓰고, 도메인 교체가 환경변수와 `wrangler.jsonc` routes 수정만으로 끝나게 한다.
 
