@@ -50,9 +50,6 @@ export function SideRail() {
               {site.email}
             </a>
           </ContactRow>
-          <ContactRow label="phone">
-            <span>{site.phone}</span>
-          </ContactRow>
           <ContactRow label="github">
             <a href={site.github} className="text-muted">
               {site.githubLabel}

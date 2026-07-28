@@ -149,7 +149,7 @@ export default function HomePage() {
             </span>
           </a>
           <span className="font-mono text-xs text-faint">
-            {site.phone} · {site.githubLabel}
+            {site.githubLabel}
           </span>
         </footer>
       </main>
