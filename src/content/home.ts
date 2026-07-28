@@ -3,7 +3,7 @@
 import { careerItemSchema, type CareerItem } from "@/content/schema";
 
 export const heroIntro =
-  "기획부터 배포·운영까지 책임집니다. 실서비스 2건 운영 중 — 얼굴 자동 블러, WebSub 이벤트 파이프라인, 서버리스 메시지 큐 같은 문제를 코드로 풉니다.";
+  "기획부터 배포·운영까지 책임집니다. 실서비스 2건 운영 중이고 첫 홈페이지를 본 곳들의 소개로 의뢰가 이어졌습니다 — 얼굴 자동 블러, WebSub 이벤트 파이프라인, 서버리스 메시지 큐 같은 문제를 코드로 풉니다.";
 
 export const stackLines = [
   { label: "Backend", value: "Java · Spring Boot · NestJS" },

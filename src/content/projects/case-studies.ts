@@ -121,7 +121,7 @@ export const caseStudies: Record<string, CaseStudy> = {
   },
 
   "ankang-sumgim": {
-    statusLine: "LIVE — 실제 고객 의뢰 · 운영 2026.05 —",
+    statusLine: "LIVE — 첫 수주 · 이후 의뢰 2건의 출발점 · 운영 2026.05 —",
     title: "안강 섬김 노인복지센터",
     overview:
       "실제 고객 의뢰로 구축한 공식 홈페이지 및 운영자 CMS. 공지·사진 게시판·상담문의·구인 안내를 관리하는 실서비스로, 사진 업로드 시 얼굴을 자동 감지해 블러 처리하는 개인정보 보호 파이프라인을 구현했습니다.",
@@ -296,7 +296,7 @@ export const caseStudies: Record<string, CaseStudy> = {
   },
 
   worldengco: {
-    statusLine: "WIP — 실제 고객 의뢰 · 개발 진행 중",
+    statusLine: "WIP — 소개가 이어져 받은 세 번째 의뢰 · 개발 진행 중",
     title: "월드ENC.CO 홈페이지",
     overview:
       "반려견 목욕차·복지(재가노인·장애인) 이동목욕차 제작 전문업체(2014 설립, ISO9001)의 홈페이지 전면 리모델링. 게시판 중심의 Wix 사이트를 신규 차량 문의·견적 획득(lead-gen) 중심의 카탈로그형 사이트로 새로 구축 중입니다.",
