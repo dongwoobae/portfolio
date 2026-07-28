@@ -29,6 +29,7 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     type: "website",
     url: site.url,
+    images: ["/opengraph-image"],
   },
 };
 
