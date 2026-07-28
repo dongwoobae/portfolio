@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 사실이 틀린 경력 콘텐츠를 바로잡고, `mailto:`를 클립보드 복사로 교체하며, 전화번호만 비밀번호로 잠긴 `/resume` 페이지(A4 1장 인쇄 가능)를 만들고, 프로젝트별 OG 이미지와 익명 애널리틱스를 붙인다.
+**Goal:** 사실이 틀린 경력 콘텐츠를 바로잡고, `mailto:`를 클립보드 복사로 교체하며, 전화번호만 비밀번호로 잠긴 `/resume` 페이지(A4 인쇄용 스타일 포함)를 만들고, 프로젝트별 OG 이미지와 익명 애널리틱스를 붙인다.
 
 **Architecture:** 기존 구조(파일 기반 콘텐츠 + zod 빌드타임 검증 + SSG)를 유지한다. 새로 생기는 서버 코드는 `POST /api/resume-contact` 라우트 하나뿐이고 상태를 갖지 않는다. 전화번호는 저장소 코드에 두지 않고 Cloudflare Workers secret으로만 존재하며, 비밀번호 검증에 성공한 응답으로만 나간다. 인쇄는 별도 파일이 아니라 `/resume`의 `@media print` 결과물이다.
 
@@ -1283,7 +1283,7 @@ function SectionHead({ children }: { children: React.ReactNode }) {
 }
 
 // 좌측 라벨(기간) + 우측 내용. 랜딩 경력 섹션과 같은 문법이라 화면과 종이의
-// 인상이 이어지고, 1열 나열보다 밀도가 높아 A4 1장에 들어간다.
+// 인상이 이어지고, 경력의 시간 축이 좌측에 정렬돼 흐름이 바로 읽힌다.
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1 py-2 sm:flex-row sm:gap-[18px] print:break-inside-avoid print:flex-row">
@@ -1554,11 +1554,11 @@ npm run dev
 
 1. 배경이 흰색, 본문이 검정인가
 2. 상단 `← cd ~/dongwoobae` 네비와 잠금 입력 폼이 안 보이는가
-3. A4 **1장**에 들어가는가
+3. 페이지 경계에서 경력·프로젝트 항목이 잘리지 않는가 (분량은 1장으로 강제하지 않는다)
 4. 경력·프로젝트 항목이 페이지 경계에서 잘리지 않는가
 5. 좌측 기간 열이 정렬돼 있는가
 
-1장을 넘기면 `resume.ts`의 `achievements` 줄 수를 줄이거나, `page.tsx`의 `highlights.slice(0, 3)`을 `slice(0, 2)`로 바꾼다.
+항목이 페이지 경계에서 잘리면 `print:break-inside-avoid`가 해당 요소에 붙어 있는지 확인한다.
 
 - [ ] **Step 3: 참고 양식과 대조**
 
@@ -1576,7 +1576,7 @@ npm run dev
 
 ```bash
 git add src/app/globals.css
-git commit -m "feat: 이력서 A4 1장 인쇄 스타일 (흰 배경·파란 포인트)"
+git commit -m "feat: 이력서 인쇄 스타일 (흰 배경·파란 포인트)"
 ```
 
 ---
@@ -2060,7 +2060,7 @@ README의 "프로젝트 스크린샷" 섹션 앞에 넣는다.
 ```markdown
 ## 이력서
 
-`/resume`는 별도 PDF 파일이 아니라 `src/content/resume.ts` + `home.ts`를 조립한 페이지이고, 인쇄(`Ctrl+P`)하면 A4 1장으로 나옵니다. 인쇄 규격은 `src/app/globals.css`의 `@media print` 블록에 있습니다. 내용을 고칠 때는 `resume.ts`만 보면 되고, 경력·스택·대표 프로젝트는 `home.ts`를 재사용하므로 두 번 쓰지 않습니다.
+`/resume`는 별도 PDF 파일이 아니라 `src/content/resume.ts` + `home.ts`를 조립한 페이지이고, 인쇄(`Ctrl+P`)하면 흰 배경·파란 포인트의 A4 이력서로 나옵니다. 인쇄 규격은 `src/app/globals.css`의 `@media print` 블록에 있습니다. 내용을 고칠 때는 `resume.ts`만 보면 되고, 경력·스택·대표 프로젝트는 `home.ts`를 재사용하므로 두 번 쓰지 않습니다.
 ```
 
 - [ ] **Step 4: 전체 검사 후 커밋**

@@ -125,8 +125,7 @@ export default function ResumePage() {
           ))}
 
           <SectionHead>대표 프로젝트</SectionHead>
-          {/* A4 1장 제약. 3건을 실으면 인쇄가 2장으로 넘어간다. */}
-          {highlights.slice(0, 2).map((item) => (
+          {highlights.slice(0, 3).map((item) => (
             <Row key={item.slug} label={item.kicker}>
               <strong className="text-[14px] print:text-[10pt]">
                 {item.title}
