@@ -41,3 +41,27 @@ export const careerItemSchema = z.object({
 });
 
 export type CareerItem = z.infer<typeof careerItemSchema>;
+
+// 이력서에만 있는 값. 경력·스택·대표 프로젝트는 home.ts를 재사용하므로 여기 없다.
+export const resumeSchema = z.object({
+  summary: z.array(z.string().min(1)).length(3),
+  // key는 home.ts career의 title과 일치해야 한다(resume.test.ts가 검증).
+  achievements: z.record(z.string(), z.array(z.string().min(1)).min(2)),
+  education: z
+    .array(
+      z.object({
+        period: z.string().min(1),
+        school: z.string().min(1),
+        detail: z.string().min(1),
+      }),
+    )
+    .min(1),
+  certificates: z
+    .array(z.object({ name: z.string().min(1), date: z.string().min(1) }))
+    .min(1),
+  languages: z
+    .array(z.object({ name: z.string().min(1), score: z.string().min(1) }))
+    .min(1),
+});
+
+export type Resume = z.infer<typeof resumeSchema>;
