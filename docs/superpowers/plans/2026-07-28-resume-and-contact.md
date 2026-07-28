@@ -685,7 +685,7 @@ interface CloudflareEnv {
 `.dev.vars`를 만든다. `next dev`는 `next.config.ts`의 `initOpenNextCloudflareForDev()`를 통해 이 파일을 바인딩으로 읽는다.
 
 ```
-RESUME_PASSWORD=local-dev-password
+RESUME_PASSWORD=123456789a
 RESUME_PHONE=010-0000-0000
 ```
 
@@ -777,7 +777,7 @@ Expected: `HTTP/1.1 401`, 본문 `{"error":"invalid"}`, 헤더에 `cache-control
 
 ```bash
 curl -i -X POST http://localhost:3000/api/resume-contact \
-  -H "Content-Type: application/json" -d '{"password":"local-dev-password"}'
+  -H "Content-Type: application/json" -d '{"password":"123456789a"}'
 ```
 Expected: `HTTP/1.1 200`, 본문 `{"phone":"010-0000-0000"}`, 헤더에 `cache-control: private, no-store`
 
@@ -1443,7 +1443,15 @@ Run:
 ```bash
 npm run dev
 ```
-`http://localhost:3000/resume`에서 전 섹션이 렌더되는지, `phone` 자리에 잠금 폼이 있는지, `local-dev-password`로 해제되는지 확인한다. 확인 후 끈다.
+`http://localhost:3000/resume`에서 확인한다.
+
+1. 전 섹션이 렌더된다
+2. 화면 어디에도 전화번호가 없다
+3. 우측 상단 `↓ 이력서 다운로드` 버튼을 누르면 모달이 뜬다
+4. `123456789a`를 넣으면 모달이 닫히고 인쇄 다이얼로그가 열린다
+5. 인쇄 미리보기에만 전화번호가 있고, 취소 후 화면에는 여전히 없다
+
+확인 후 끈다.
 
 - [ ] **Step 5: 커밋**
 
@@ -1586,7 +1594,7 @@ Create `e2e/resume.spec.ts`:
 import { expect, test } from "@playwright/test";
 
 // .dev.vars에 넣은 로컬 개발용 값과 같아야 한다.
-const PASSWORD = process.env.RESUME_PASSWORD ?? "local-dev-password";
+const PASSWORD = process.env.RESUME_PASSWORD ?? "123456789a";
 const PHONE = process.env.RESUME_PHONE ?? "010-0000-0000";
 
 test("이력서 페이지가 전 섹션을 렌더한다", async ({ page }) => {
