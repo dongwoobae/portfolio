@@ -126,6 +126,30 @@ test("sitemap과 robots가 서빙된다", async ({ page }) => {
   expect(await robots?.text()).toContain("Sitemap:");
 });
 
+test("연락처가 mailto 없이 복사 방식으로 동작한다", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/");
+
+  // mailto:는 윈도우 데스크톱에서 Outlook을 깨우므로 한 곳도 남기지 않는다.
+  await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
+
+  await page.getByRole("button", { name: "dw5817@gmail.com" }).first().click();
+  await expect(page.getByText("copied ✓").first()).toBeVisible();
+
+  const clipboard = await page.evaluate(() => navigator.clipboard.readText());
+  expect(clipboard).toBe("dw5817@gmail.com");
+});
+
+test("전화번호가 어느 페이지에도 노출되지 않는다", async ({ page }) => {
+  for (const path of ["/", "/projects/modu-campus"]) {
+    await page.goto(path);
+    await expect(page.locator("body")).not.toContainText("5586");
+  }
+});
+
 // 레일과 4열 그리드가 좁은 화면에서 접히지 않으면 바로 가로 스크롤이 생긴다.
 test("375px에서 어느 페이지도 가로로 밀리지 않는다", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
