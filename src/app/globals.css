@@ -68,3 +68,82 @@ a:hover {
 .prose-scroll {
   overflow-x: auto;
 }
+
+/* 이력서 인쇄 규격. 화면과 종이는 서로 다른 디자인이다. 화면(/resume)은 사이트와
+   같은 다크 터미널 테마이고, 인쇄물만 흰 배경 + 파란 포인트의 일반적인 이력서
+   형태로 갈아끼운다. 종이에서는 터미널 장식(프롬프트 접두사·커서·경로 표기·
+   카드 보더)이 노이즈이므로 전부 뺀다. */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm 18mm;
+  }
+
+  :root {
+    /* 화면 accent(#7ee2a8)는 민트라 흰 종이에서 대비가 부족해 쓰지 않는다.
+       종이 이력서는 사이트 브랜딩보다 관례와 가독성이 우선이라 파랑을 쓴다.
+       Tailwind 쪽에서는 v4 문법 text-(--print-accent)로 참조한다. */
+    --print-accent: #1f5fa9;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  /* 화면 accent(--color-accent, 민트)를 쓰는 요소가 종이에 그대로 남으면
+     흰 배경에서 대비가 무너진다. 이력서 지면 안에서는 검정으로 되돌린다.
+     섹션 헤더(h2)는 제외한다 — 거기만 print:text-(--print-accent)로 파랑을 쓴다. */
+  .resume-sheet :not(h2).text-accent,
+  .resume-sheet :not(h2).text-accent * {
+    color: #111 !important;
+  }
+
+  /* A4 1장 압축. 화면용 여백을 그대로 인쇄하면 1.5장이 되어 목표를 못 맞춘다.
+     설계 문서의 섹션 여백 7mm는 화면 기준 수치이고, 지면에서는 1장 제약이
+     우선한다. 위계는 Bold와 실선으로 유지되므로 여백만 줄인다. */
+  .resume-sheet h2 {
+    /* 섹션 헤더 6개의 상단 여백이 1장/2장을 가르는 지점이다. 연락처를 해제하면
+       머리글에 phone 행이 더해져 3.2mm에서는 5.3mm 초과로 2장이 된다. 제출본은
+       해제 상태이므로 그쪽이 1장에 들어가야 한다. 실측으로 2.1mm를 택했다. */
+    margin-top: 2.1mm;
+    margin-bottom: 1mm;
+    padding-bottom: 0.8mm;
+    font-size: 10.5pt;
+  }
+
+  /* 2열 행(좌측 기간 라벨 + 우측 내용)의 상하 여백. 화면의 py-2(8px)는
+     종이에서 행마다 4mm씩 낭비된다. */
+  .resume-sheet .resume-row {
+    padding-top: 0.3mm;
+    padding-bottom: 0.3mm;
+  }
+
+  /* 머리글의 연락처 블록도 같은 이유로 좁힌다. 사진(33mm)이 바닥이라
+     텍스트 열을 여기까지 줄여야 머리글 전체가 사진 높이에 수렴한다. */
+  .resume-sheet .resume-contact {
+    margin-top: 2mm;
+    gap: 0.6mm;
+  }
+
+  /* 본문 행간. 화면 1.7은 스크롤 가독성용이고 지면에서는 1.45로 좁힌다.
+     Tailwind의 leading-[1.7]보다 선택자 특이도가 높아 !important가 필요 없다. */
+  .resume-sheet li,
+  .resume-sheet p {
+    line-height: 1.35;
+  }
+
+  /* 흑백 출력에서 색이 죽어도 Bold와 실선으로 위계가 유지되어야 한다. */
+  .resume-sheet a {
+    color: #111 !important;
+    text-decoration: none;
+  }
+
+  /* 종이에서는 클릭할 수 없으므로 주소가 보여야 한다. */
+  .resume-sheet a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #666;
+  }
+}

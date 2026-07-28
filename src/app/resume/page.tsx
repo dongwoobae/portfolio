@@ -38,7 +38,7 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-1 py-2 sm:flex-row sm:gap-[18px] print:break-inside-avoid print:flex-row">
+    <div className="resume-row flex flex-col gap-1 py-2 sm:flex-row sm:gap-[18px] print:break-inside-avoid print:flex-row">
       <span className="font-mono text-[11.5px] text-faint sm:w-24 sm:flex-none print:w-[22mm] print:text-[8.5pt] print:text-[#666]">
         {label}
       </span>
@@ -69,7 +69,7 @@ export default function ResumePage() {
               <p className="mt-1.5 font-mono text-[12px] text-tertiary print:text-[9pt]">
                 backend-driven fullstack
               </p>
-              <div className="mt-4 flex flex-col gap-1.5 text-[13px] print:text-[9pt]">
+              <div className="resume-contact mt-4 flex flex-col gap-1.5 text-[13px] print:text-[9pt]">
                 <span className="flex items-baseline gap-2.5">
                   <span className="w-10 flex-none font-mono text-[10.5px] text-faint">
                     mail
@@ -104,7 +104,7 @@ export default function ResumePage() {
           </header>
 
           <SectionHead>요약</SectionHead>
-          <ul className="flex flex-col gap-1.5 text-[13px] leading-[1.7] text-muted print:text-[9.5pt] print:text-[#111]">
+          <ul className="flex flex-col gap-1.5 text-[13px] leading-[1.7] text-muted print:gap-0 print:text-[9.5pt] print:text-[#111]">
             {resume.summary.map((line) => (
               <li key={line}>{line}</li>
             ))}
@@ -116,7 +116,7 @@ export default function ResumePage() {
               <strong className="text-[14px] print:text-[10pt]">
                 {job.title}
               </strong>
-              <ul className="mt-1 flex flex-col gap-1 text-[12.5px] leading-[1.7] text-muted print:text-[9.5pt] print:text-[#111]">
+              <ul className="mt-1 flex flex-col gap-1 text-[12.5px] leading-[1.7] text-muted print:gap-0 print:text-[9.5pt] print:text-[#111]">
                 {resume.achievements[job.title]?.map((line) => (
                   <li key={line}>· {line}</li>
                 ))}
@@ -125,7 +125,8 @@ export default function ResumePage() {
           ))}
 
           <SectionHead>대표 프로젝트</SectionHead>
-          {highlights.slice(0, 3).map((item) => (
+          {/* A4 1장 제약. 3건을 실으면 인쇄가 2장으로 넘어간다. */}
+          {highlights.slice(0, 2).map((item) => (
             <Row key={item.slug} label={item.kicker}>
               <strong className="text-[14px] print:text-[10pt]">
                 {item.title}
@@ -137,7 +138,7 @@ export default function ResumePage() {
           ))}
 
           <SectionHead>기술 스택</SectionHead>
-          <div className="flex flex-col gap-1.5 text-[12.5px] print:text-[9.5pt]">
+          <div className="flex flex-col gap-1.5 text-[12.5px] print:gap-0 print:text-[9.5pt]">
             {stackLines.map((line) => (
               <Row key={line.label} label={line.label}>
                 <span className="text-muted print:text-[#111]">
