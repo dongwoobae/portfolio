@@ -392,7 +392,7 @@ export const caseStudies: Record<string, CaseStudy> = {
     meta: [
       { label: "ROLE", value: "1인 PM · 기획 · 개발" },
       { label: "CLIENT", value: "보건복지부 과제 수행" },
-      { label: "STACK", value: "Java · JSP · Servlet · Tomcat · MySQL" },
+      { label: "STACK", value: "Java · JSP · Servlet · Tomcat · MariaDB" },
       {
         label: "LINKS",
         links: [{ label: "live ↗", href: "https://hmsu.kr" }],
@@ -427,7 +427,7 @@ export const caseStudies: Record<string, CaseStudy> = {
           {
             title: "사용자 관리 + 정보 검색 플랫폼",
             description:
-              "사용자 관리 시스템과 통합 데이터 기반 정보 검색 플랫폼을 Java·JSP·Servlet·MySQL 스택으로 구축.",
+              "사용자 관리 시스템과 통합 데이터 기반 정보 검색 플랫폼을 Java·JSP·Servlet·MariaDB 스택으로 구축.",
           },
         ],
       },
