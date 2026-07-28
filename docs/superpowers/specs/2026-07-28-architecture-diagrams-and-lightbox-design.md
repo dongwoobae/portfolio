@@ -29,6 +29,55 @@
 
 ---
 
+## 코드 확인 결과 (2026-07-28 완료)
+
+아래 제약에 따라 3개 저장소를 읽었다. 확인된 사실과 문안 불일치는 이 절이 기준이다.
+
+### 영천중앙교회
+
+- 감지: `POST /api/youtube/websub` — `X-Hub-Signature`(`sha1=`) HMAC-SHA1 + `timingSafeEqual`. `<at:deleted-entry>`는 무시. `GET`은 `hub.topic`이 채널 토픽일 때만 `hub.challenge` 에코, 아니면 404.
+- 영상·채널 데이터: **RapidAPI yt-api** — `/video/info`(단건), `/channel/videos`(보정). YouTube Data API v3가 아니다.
+- 자막: yt-api `/subtitles` → 한국어 트랙 URL → **YouTube timedtext XML 직접 fetch**(429/5xx는 지수 백오프 4회) → 파싱. 호스트가 `youtube-transcript3`면 `/api/transcript`로 분기.
+- 잡 체인: `ingest-video → fetch-transcript → summarize`, 전부 `verifyQStash`(Upstash Receiver) 서명 검증.
+- 예배 분류: 재생목록 소속이 아니라 **제목 기반 `classifyByTitle`**.
+- 재시도: ingest·transcript는 **QStash delay 고정 30분 × 최대 12회**. summarize 실패는 `computeNextRetry = 5 × 3^(n-1)`분을 DB `summary_next_retry_at`에 저장하고 **매시간 `retry-summaries` 스위퍼**가 재투입.
+- 선점: `WITH claimed AS (UPDATE ... RETURNING ...)` CTE.
+- 자막 저장: `sermon_transcripts` 위성 테이블 upsert. summarize는 DB에서 읽는다.
+- 스케줄: `websub-renew` 2일마다 / `retry-summaries` 매시간 / `reconcile-sermons` 매일 / `analytics-rollup` 매일.
+- 보정: `reconcileSermons`는 채널 최신 영상 목록과 DB를 대조해 누락분을 in-process로 직접 등록한다. **재생목록 순회가 아니다.**
+
+**문안 불일치 2건 — Phase 0에서 정정한다.**
+
+1. `"누락분은 재생목록 순회 백필로 보완"` → 채널 최신 영상 ↔ DB 대조 보정.
+2. `"QStash 지연 발행(delay)으로 지수 백오프(5·3ⁿ분) 구현"` → 두 메커니즘이 섞였다. delay 발행은 고정 30분 재시도, 5·3ⁿ 백오프는 DB + 매시간 스위퍼.
+
+### 안강 섬김
+
+- Phase 1(브라우저, 순차 — TF.js WebGL/WASM 단일 스레드): `compressImageFile`(캔버스 축소, Vercel 본문 4.5MB 한도 대응)을 **먼저** 수행해 업로드 파일과 얼굴 좌표의 기준 이미지를 일치시킨다 → `face-api.js tinyFaceDetector`(`scoreThreshold: 0.45`) → `naturalWidth/width` 스케일 보정.
+- 메모리: `img.src = ""` + `revokeObjectURL` + `setTimeout(0)` GC yield.
+- Phase 2(병렬): `Promise.all` → `fetch POST /api/upload-photo`. Server Action은 React 큐로 직렬화되므로 API Route를 쓴다. DB 저장(`savePhotoMetadata`)은 경량 INSERT라 **순차**.
+- 서버 검증 순서: Supabase 세션 → folder 화이트리스트 정규식 → MIME 화이트리스트(HEIC 제외 — Vercel sharp에 HEVC 디코더 없음)·30MB → **매직바이트 `detectImageType`**(`file.type`은 위조 가능) → `faceRegions` 검증(배열·50개 이하).
+- sharp: `.rotate()`(EXIF) → `.resize(1920, inside).webp(75)` → `scaleFaceRegions`(원본→리사이즈본 좌표 변환, 경계 클램프, 4px 이하 제외) → `extract().blur(28)` → `composite()`.
+- 저장: `Promise.all`로 `{folder}/blurred/{ts}.webp` + `{folder}/original/{ts}.webp`. 얼굴 0개면 단순 압축 1건만.
+
+문안 불일치 없음.
+
+### 월드ENC.CO
+
+- 듀얼 트랙: `/products/pet`, `/products/welfare`. 문의는 `inquiries.type = pet | welfare | etc`.
+- 예약 폼 `submitReservation` 방어 순서: **rate limit(IP 슬라이딩, 10분 5회) → Turnstile → Zod → 6개월 상한 → 서버 가용 재검증 → insert**. 실패는 throw가 아니라 `FormState` 반환(폼 입력 유실 방지).
+- 가용 판정 `getUnavailableReason`를 **클라이언트 데이트피커와 서버 액션이 같은 함수로 공유**. 공휴일 API 장애 시 fail-open.
+- 규칙: `external_repair`는 토요일만, `self_as`·`training`은 일요일 제외. `day_overrides`(`closed`/`open`)가 공휴일보다 우선.
+- `GET /api/availability?year&month&type` — 월 단위 비활성 날짜 계산. 외부 공휴일 API 쿼터 방어로 연도 ±1년 제한.
+- 예약 타입 3종: 자사 차량 A/S · 타사 차량 정비(토요일) · 운영 교육. 시간 슬롯 08~17, `hour = null`이면 "시간 협의".
+- `source: web | manual` — 전화 접수 수동 등록이 같은 테이블에 합류. `status: pending → confirmed | rejected | done`.
+- **이중예약 최종 방어선**: partial unique index `(date, hour) WHERE status = 'confirmed' AND hour IS NOT NULL`. D1에서 앱 레벨 check-then-insert가 원자적이지 않기 때문.
+- Wix 이관: `scripts/wix-delivery-import.mjs` — 기본 dry-run, `--apply`에는 `--local|--remote` 필수.
+
+**문안 불일치는 없으나 과소 서술이다.** 예약이 관리자 기능 한 줄로만 적혀 있다. Phase 1에서 `## 예약 시스템 — 이중예약 방어` 섹션을 신설한다.
+
+---
+
 ## 선행 제약 — 코드를 읽고 그린다
 
 다이어그램 4장은 **각 프로젝트의 실제 코드를 읽은 뒤에** 그린다. 케이스 스터디 산문은 요약이라 단계 이름·순서·분기가 실제 구현과 다를 수 있다. 산문만 보고 그리면 사이트가 사실과 다른 구조를 주장하게 된다.
@@ -46,6 +95,14 @@
 
 ---
 
+## Phase 0 — 문안 정정 (선행)
+
+다이어그램이 실코드를 그리므로, 같은 섹션의 카드 문장이 코드와 다르면 그림과 글이 서로 다른 주장을 하게 된다. 다이어그램보다 먼저 고친다. 대상은 `src/content/projects/case-studies.ts`의 `ycc-website` 두 문장이며, 위 "코드 확인 결과 → 영천중앙교회"의 불일치 2건이다.
+
+정정 범위는 이 두 문장으로 한정한다. 다른 프로젝트의 문안은 건드리지 않는다.
+
+---
+
 ## Phase 1 — 다이어그램
 
 ### 1-1. 데이터 모델
@@ -57,7 +114,7 @@ export type DiagramId =
   | "ycc-websub"
   | "ycc-qstash"
   | "sumgim-blur"
-  | "worldeng-lead";
+  | "worldeng-reservation";
 
 export type CaseStudySection =
   | { heading: string; prose: ProseSegment[] }
@@ -69,35 +126,42 @@ export type CaseStudySection =
 ### 1-2. 파일 구조
 
 ```
+src/content/projects/
+  diagrams.ts                DiagramId + DIAGRAM_META(제목·설명·크기) — 순수 데이터
+  diagrams.test.ts           레지스트리 ↔ 사용처 정합성
 src/components/project/
   CaseStudyDiagram.tsx       figure 셸 · 가로 스크롤 · figcaption · 라이트박스 트리거
   diagrams/
-    primitives.tsx           Node · Arrow · Lane · marker defs · 좌표 상수
+    geometry.ts              순수 좌표 계산 (화살표 접점·박스)
+    geometry.test.ts
+    primitives.tsx           DiagramSvg · Node · Arrow · Loop · Lane
     YccWebsub.tsx
     YccQstash.tsx
     SumgimBlur.tsx
-    WorldengLead.tsx
-    index.ts                 DIAGRAMS 레지스트리
-    registry.test.ts
+    WorldengReservation.tsx
+    index.ts                 DIAGRAMS: Record<DiagramId, ComponentType>
 ```
 
-`DiagramId`는 콘텐츠 쪽(`case-studies.ts`)이 소유한다. `diagrams/index.ts`가 그 타입을 import해 `Record<DiagramId, ComponentType>`로 레지스트리를 선언하므로, id를 추가하고 컴포넌트를 안 만들면 타입 검사에서 걸린다. 의존 방향은 컴포넌트 → 콘텐츠 한 방향이다.
+`DiagramId`와 `DIAGRAM_META`는 콘텐츠 쪽(`src/content/projects/diagrams.ts`)이 소유한다. `diagrams/index.ts`가 그 타입을 import해 `Record<DiagramId, ComponentType>`로 레지스트리를 선언하므로, id를 추가하고 컴포넌트를 안 만들면 **타입 검사에서 걸린다**. 의존 방향은 컴포넌트 → 콘텐츠 한 방향이다.
+
+좌표 계산(`geometry.ts`)을 JSX(`primitives.tsx`)에서 분리하는 이유는 아래 "테스트" 절의 제약 때문이다 — 순수 함수만 단위 테스트할 수 있다.
 
 ### 1-3. 프리미티브 — 화살표가 어긋나지 않는 이유
 
-노드는 그리드 좌표 `(col, row)`로만 선언한다. 픽셀 좌표는 `primitives.tsx`의 상수(칸 폭·높이·간격)에서 계산된다.
+각 다이어그램은 노드를 `{ id, x, y, w, h, title, notes }` 배열로 선언한다. 노드 **위치는 사람이 정하지만, 화살표 기하는 전부 파생**된다.
 
 ```
-node(col, row) → { x, y, w, h }   // 한 곳에서만 계산
-Arrow from={"hub"} to={"callback"} label="Atom push"
-   → 두 노드의 박스에서 접점을 구해 d 속성을 만든다
+Arrow from="hub" to="callback" label="Atom push"
+   → anchor(hub, callback) · anchor(callback, hub)로 두 박스의 접점을 구해 d를 만든다
 ```
 
-`x1="240" y1="80"` 같은 좌표를 손으로 적는 코드는 두지 않는다. 노드를 옮기면 화살표가 따라온다.
+`x1="240" y1="80"` 같은 좌표를 손으로 적는 코드는 두지 않는다. 노드를 옮기면 화살표가 따라온다. `anchor()`는 두 박스 중심을 잇는 방향의 지배 축을 판정해 마주 보는 변 위의 점을 반환하므로, 어떤 배치에서도 선이 박스 안에서 시작하거나 허공에서 끝나지 않는다.
 
-- 화살촉은 `<defs><marker>` 한 벌을 공유한다. 다이어그램마다 재정의하지 않는다.
 - 경로 종류는 세 가지로 제한한다: 주 흐름(accent 실선), 보조 흐름(line 실선), 되돌이/재시도(line 점선).
-- 라벨은 경로 중점 위에 배경 사각형과 함께 놓아 선 위에서 읽히게 한다.
+- 되돌이 경로는 `Loop`가 노드 오른쪽으로 빠져나갔다 되돌아오는 경로를 그린다. 재시도 표현 전용이다.
+- 경로 라벨은 배경 사각형 대신 `paint-order: stroke` + 페이지 배경색 stroke로 후광을 준다. 라벨 폭을 추정해 사각형을 그리면 반드시 어긋난다.
+
+**마커 id는 반드시 인스턴스마다 유니크해야 한다.** 라이트박스가 열리면 같은 다이어그램이 문서에 두 벌 존재하고, `<marker id="arrow">`가 중복되면 `url(#arrow)`가 먼저 나온 쪽으로 붙어 화살촉이 사라지거나 엉뚱하게 그려진다. `DiagramSvg`가 `useId()`로 접두사를 만들어(콜론 제거) 컨텍스트로 내려주고, `Arrow`·`Loop`가 그것을 참조한다.
 
 ### 1-4. 시각 규격
 
@@ -122,33 +186,45 @@ Arrow from={"hub"} to={"callback"} label="Atom push"
 
 ### 1-6. 다이어그램 4장
 
-각 항목의 내용은 **코드 확인 후 확정**한다. 아래는 그릴 대상과 강조점이다.
+내용은 위 "코드 확인 결과"가 근거다. 라벨 표기는 코드의 실제 이름을 쓴다.
 
 **ycc-websub** — 영천중앙교회 `## 설교 자동 동기화 — WebSub 푸시`
 
-주 흐름: YouTube 채널 업로드 → PubSubHubbub 허브 → 콜백 라우트 → videoId 파싱 → QStash 잡 발행.
-콜백 노드에 두 갈래 검증을 명시한다: 구독 검증(토픽 일치 시에만 challenge 에코)과 알림 검증(`X-Hub-Signature` HMAC-SHA1 timing-safe 비교).
-보조 흐름 둘: QStash cron → 리스 만료 전 재구독, 재생목록 순회 백필 → 누락분 보완.
+주 흐름: `YouTube 채널` → `PubSubHubbub 허브` --Atom XML push--> `POST /api/youtube/websub` --`yt:videoId`--> `QStash ingest-video 발행`.
+콜백 노드에 검증을 명시한다: `X-Hub-Signature` HMAC-SHA1 timing-safe 비교, `<at:deleted-entry>` 무시.
+별도 노드로 구독 검증 경로: `GET /api/youtube/websub` — `hub.topic` 일치 시에만 `hub.challenge` 에코, 불일치는 404.
+보조 흐름 둘(점선): `QStash cron 2일` → `websub-renew` → 허브 재구독, `QStash cron 매일` → `reconcile-sermons` → yt-api `/channel/videos` ↔ DB 대조 → 누락분 직접 등록.
 
 **ycc-qstash** — 영천중앙교회 `## AI 요약 파이프라인 — 서버리스 메시지 큐`
 
-주 흐름: ingest-video → fetch-transcript → summarize → DB 반영. 각 잡 입구에 HMAC 서명 검증 표시.
-강조 둘: 원자적 선점(CTE `UPDATE ... RETURNING`)으로 중복 요약 차단, 실패 시 QStash 지연 발행으로 지수 백오프하는 되돌이 경로(점선).
+주 흐름: `ingest-video` → `fetch-transcript` → `summarize` → `Neon`. 각 노드에 `verifyQStash` 표시.
+`ingest-video` 보조 문구: `sermonExists` 중복 차단, yt-api `/video/info`, `classifyByTitle`.
+`fetch-transcript` 보조 문구: yt-api `/subtitles` → timedtext XML 직접 파싱, `sermon_transcripts` upsert.
+`summarize` 보조 문구: `WITH claimed AS (UPDATE ... RETURNING)` 원자적 선점, Gemini `responseSchema`.
+되돌이 경로 3개: `ingest-video`·`fetch-transcript`는 각각 `Loop`로 **QStash delay 고정 30분 × 12회**, `summarize` 실패는 `summary_next_retry_at = 5 × 3^(n-1)분` → `QStash cron 매시간 retry-summaries` 노드에서 되돌아오는 점선.
+
+두 재시도 메커니즘이 다르다는 것이 이 그림의 핵심이다. 하나로 뭉개지 않는다.
 
 **sumgim-blur** — 안강 섬김 `## 핵심 엔지니어링 — 얼굴 자동 블러 파이프라인`
 
-레인 3개로 나눈다: 브라우저 / 서버 / 저장소. 레인 분리 자체가 "왜 감지는 순차이고 업로드는 병렬인가"를 설명한다.
-브라우저: 파일 선택 → face-api.js TinyFaceDetector 순차 감지(WebGL 단일 스레드) → 좌표 배열.
-서버: 업로드 라우트 → sharp EXIF 회전 보정 → 영역 extract → blur → 원위치 합성.
-저장소: `original/`·`blurred/` 병렬 업로드, 사진별 블러 on/off 토글.
+레인 3개: 브라우저 / 서버 / 저장소. 레인 분리 자체가 "왜 감지는 순차이고 업로드는 병렬인가"를 설명한다.
+브라우저 Phase 1(레인 라벨에 `순차 — TF.js 단일 스레드`): `파일 선택` → `compressImageFile` → `face-api.js tinyFaceDetector (0.45)` → `좌표[] naturalWidth 보정`. 압축이 감지보다 **먼저**라는 순서가 중요하다(업로드 파일과 좌표의 기준 이미지 일치).
+브라우저 Phase 2(레인 라벨에 `병렬 — Promise.all`): `fetch POST /api/upload-photo`. 노드 보조 문구로 `Server Action은 React 큐 직렬화 → API Route`.
+서버: `Supabase 세션` → `folder·MIME·30MB` → `매직바이트 detectImageType` → `sharp .rotate() EXIF` → `.resize(1920).webp(75)` → `scaleFaceRegions 좌표 변환·클램프` → `extract().blur(28) → composite()`.
+저장소: `blurred/{ts}.webp`·`original/{ts}.webp` 병렬 업로드 → `savePhotoMetadata (순차)`.
+분기(점선): 얼굴 0개 → 단순 압축 1건만.
 
-**worldeng-lead** — 월드ENC.CO `## 핵심 작업`
+**worldeng-reservation** — 월드ENC.CO `## 예약 시스템 — 이중예약 방어` (신설 섹션)
 
-리드 획득 동선: 홈 → 반려견 목욕차 / 복지 이동목욕차 듀얼 트랙 분기 → 각 제품 페이지 → 맞춤 견적 폼 → 저장.
-관리자 쪽에서 예약 캘린더(휴무·영업일 지정)와 전화 접수 수동 등록이 같은 예약 데이터로 합류하는 지점을 표시한다.
-좌측 보조 흐름: Wix 게시물 → 이관 스크립트 dry-run → apply → 저장.
+좌측: `클라이언트 데이트피커` --`GET /api/availability`--> `getUnavailableReason`.
+`getUnavailableReason` 노드 보조 문구: 공휴일 API(장애 시 fail-open) · `day_overrides` · 타입별 요일 규칙.
+중앙 주 흐름: `예약 폼` → `submitReservation` → `D1 reservations (source='web', status='pending')`.
+`submitReservation`은 방어 순서를 번호로 나열한다: ① rate limit(IP 슬라이딩 10분 5회) ② Turnstile ③ Zod ④ 6개월 상한 ⑤ 가용 재검증.
+⑤에서 `getUnavailableReason`으로 가는 점선 — **클라이언트와 같은 함수를 재사용**한다는 것이 요점이다.
+합류: `관리자 전화 접수` --`source='manual'`--> 같은 테이블. `관리자 day_overrides 지정` --점선--> `getUnavailableReason`.
+하단: `확정(status='confirmed')` → `partial unique index (date, hour)`. 보조 문구: `D1은 check-then-insert가 원자적이지 않다 — 최종 방어선`.
 
-한 장에 IA 재설계와 예약 시스템이 같이 설명된다. Cloudflare Workers 배포 구성은 그리지 않는다 — 박스 3개짜리라 정보량이 없다.
+Cloudflare Workers 배포 구성과 Wix 이관은 그리지 않는다. 전자는 박스 3개짜리라 정보량이 없고, 후자는 기존 카드 문장으로 충분하다.
 
 ---
 
@@ -240,17 +316,27 @@ type LightboxItem =
 
 ## 테스트
 
-기존 `meta.test.ts` · `assets.test.ts`의 빌드타임 검증 패턴을 따른다.
+**제약**: `vitest.config.ts`가 `include: ["src/**/*.test.ts"]`(`.tsx` 제외) + `environment: "node"`다. jsdom도 testing-library도 없다. **이 작업으로 새 테스트 의존성을 추가하지 않는다.** 따라서 컴포넌트 렌더·상호작용은 vitest가 아니라 Playwright가 검증한다. `<dialog showModal()>`·포커스·top-layer는 jsdom 에뮬레이션이 부실해 실제 브라우저 검증이 더 정확하기도 하다.
+
+단위 테스트(`.ts`, 기존 `meta.test.ts`·`assets.test.ts` 패턴):
 
 | 대상 | 검증 |
 | --- | --- |
-| `diagrams/registry.test.ts` | `case-studies.ts`에 쓰인 모든 `diagram` id가 `DIAGRAMS` 레지스트리에 존재한다. 레지스트리에 있는데 어디서도 안 쓰이는 항목도 잡는다. |
-| 다이어그램 렌더 스모크 | 4장 각각이 비어 있지 않은 `<title>`과 `<desc>`를 갖는다. |
-| `Lightbox` | 열림 시 dialog가 modal이고, `Esc`로 닫히며, 닫힌 뒤 포커스가 트리거로 복귀한다. `←/→`로 인덱스가 순환한다. |
-| `ShotGallery` | 썸네일이 button이고 `aria-label`을 갖는다. |
-| E2E (Playwright) | 프로젝트 상세에서 썸네일 클릭 → 라이트박스 열림 → `1:1` 토글 → `Esc` 닫힘. 다이어그램이 있는 3개 페이지에서 다이어그램이 렌더된다. |
+| `content/projects/diagrams.test.ts` | `case-studies.ts`에 쓰인 모든 `diagram` id가 `DIAGRAM_META`에 존재한다. `DIAGRAM_META`에 있는데 어디서도 안 쓰이는 항목도 잡는다. 모든 항목의 `title`·`desc`가 비어 있지 않고 `width`·`height`가 양수다. |
+| `diagrams/geometry.test.ts` | `anchor()`가 항상 박스 경계 위의 점을 반환한다. 수평으로 나란한 두 박스면 오른쪽 변 중점을 반환한다. 수직이면 아래 변 중점. 대각선 배치에서도 반환점이 박스 밖으로 나가지 않는다. |
 
-기존 E2E가 `CaseStudyShots`의 DOM 구조에 의존한다면 함께 갱신한다.
+타입 검사가 나머지를 맡는다. `DIAGRAMS: Record<DiagramId, ComponentType>`이므로 id를 추가하고 컴포넌트를 안 만들면 `npm run typecheck`가 깨진다. 런타임 테스트로 중복 검증하지 않는다.
+
+E2E(Playwright, `e2e/`):
+
+| 대상 | 검증 |
+| --- | --- |
+| 다이어그램 렌더 | 다이어그램이 있는 3개 프로젝트 페이지에서 해당 `svg[role="img"]`가 보이고 접근가능 이름이 비어 있지 않다. |
+| 스크린샷 라이트박스 | 썸네일 클릭 → dialog 열림 → 헤더에 파일명·카운터 표시 → `→`로 다음 장 이동 → `1:1` 토글 → `Esc` 닫힘 → 포커스가 원래 썸네일로 복귀. |
+| 다이어그램 라이트박스 | 다이어그램 확대 버튼 클릭 → dialog 열림 → `1:1` 버튼 없음 → `Esc` 닫힘. |
+| 가로 스크롤 회귀 | 375px 뷰포트에서 `document.documentElement.scrollWidth <= clientWidth`. |
+
+기존 `e2e/smoke.spec.ts`가 `CaseStudyShots`의 DOM 구조에 의존한다면 함께 갱신한다.
 
 ## 검증
 
