@@ -50,8 +50,18 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      # E2E의 잠금 테스트는 Workers 바인딩(.dev.vars)으로 secret을 읽는다.
+      # 이 스텝이 E2E보다 뒤에 오면 잠금 테스트가 전부 깨진다.
+      - name: Write .dev.vars for E2E
+        run: |
+          echo "RESUME_PASSWORD=${{ secrets.RESUME_PASSWORD }}" >> .dev.vars
+          echo "RESUME_PHONE=${{ secrets.RESUME_PHONE }}" >> .dev.vars
+
       - name: E2E (playwright)
         run: npm run e2e
+        env:
+          RESUME_PASSWORD: ${{ secrets.RESUME_PASSWORD }}
+          RESUME_PHONE: ${{ secrets.RESUME_PHONE }}
 
       - name: Upload E2E artifacts
         if: failure()
