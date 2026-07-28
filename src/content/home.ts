@@ -7,7 +7,7 @@ export const heroIntro =
 
 export const stackLines = [
   { label: "Backend", value: "Java · Spring Boot · NestJS" },
-  { label: "Frontend", value: "TypeScript · Next.js · React" },
+  { label: "Frontend", value: "TypeScript · Next.js · React · JSP" },
   { label: "Data", value: "MySQL · Supabase · Neon" },
   { label: "Infra", value: "Cloudflare · Vercel · GH Actions" },
 ] as const;
