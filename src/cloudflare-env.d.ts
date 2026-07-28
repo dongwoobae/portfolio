@@ -5,4 +5,10 @@
 interface CloudflareEnv {
   RESUME_PASSWORD?: string;
   RESUME_PHONE?: string;
+  // wrangler.jsonc의 ratelimits 바인딩. @cloudflare/workers-types의 RateLimit과
+  // 같은 모양이지만, 이 파일은 import 없는 전역 선언이라 구조만 손으로 적는다
+  // (import를 넣으면 모듈이 되어 CloudflareEnv 전역 선언이 깨진다).
+  RESUME_RATE_LIMIT?: {
+    limit: (options: { key: string }) => Promise<{ success: boolean }>;
+  };
 }

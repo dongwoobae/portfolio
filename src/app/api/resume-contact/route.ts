@@ -27,6 +27,20 @@ export async function POST(request: Request) {
   // OpenNext Workers에서는 process.env로 바인딩된 secret이 잡히지 않는다.
   const { env } = getCloudflareContext();
 
+  // IP 단위로 시도 속도를 제한한다. POP별 최종 일관성이라 완벽한 차단은 아니고,
+  // 자동화된 대입의 속도를 떨어뜨리는 것이 목적이다.
+  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+  const limiter = env.RESUME_RATE_LIMIT;
+  if (limiter) {
+    const { success } = await limiter.limit({ key: ip });
+    if (!success) {
+      return Response.json(
+        { error: "too_many" },
+        { status: 429, headers: HEADERS },
+      );
+    }
+  }
+
   const ok = await verifyPassword(
     parsed.data.password,
     env.RESUME_PASSWORD ?? "",
