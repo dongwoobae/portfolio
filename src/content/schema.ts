@@ -47,6 +47,10 @@ export const resumeSchema = z.object({
   summary: z.array(z.string().min(1)).length(3),
   // key는 home.ts career의 title과 일치해야 한다(resume.test.ts가 검증).
   achievements: z.record(z.string(), z.array(z.string().min(1)).min(2)),
+  // 대표 프로젝트의 문제 해결 케이스. key는 home.ts highlights의 slug와 일치해야 한다.
+  // 프로젝트가 무엇인지는 case-studies의 overview가 설명하고, 여기에는 그 안에서
+  // 무엇을 풀었는지만 이력서용으로 짧게 다시 쓴다.
+  projectCases: z.record(z.string(), z.array(z.string().min(1)).min(2)),
   education: z
     .array(
       z.object({

@@ -6,6 +6,7 @@ import { DownloadButton } from "@/components/resume/DownloadButton";
 import { PrintPhone } from "@/components/resume/PrintPhone";
 import { UnlockProvider } from "@/components/resume/UnlockContext";
 import { career, highlights, stackLines } from "@/content/home";
+import { caseStudies } from "@/content/projects/case-studies";
 import { resume } from "@/content/resume";
 import { getProjectBySlug } from "@/lib/projects";
 import { site } from "@/lib/site";
@@ -126,23 +127,42 @@ export default function ResumePage() {
           ))}
 
           <SectionHead>대표 프로젝트</SectionHead>
-          {/* 이력서에서는 프로젝트명이 먼저 와야 한다. highlights의 title은
-              "폴링 없는 설교 자동화 파이프라인"처럼 해결한 문제를 가리키는 문구라
-              그것만 실으면 무엇을 만든 것인지 읽히지 않는다. 이름은 meta.ts가
-              갖고 있으므로 slug로 끌어와 앞에 세우고, 성과 문구는 뒤에 붙인다. */}
+          {/* 읽는 순서를 이름 → 무엇인지 → 그 안에서 무엇을 풀었는지로 둔다.
+              highlights의 title은 "폴링 없는 설교 자동화 파이프라인"처럼 해결한
+              문제를 가리키는 문구라, 그것만 실으면 무엇을 만든 것인지 읽히지 않는다.
+              이름은 meta.ts, 설명은 case-studies의 overview, 케이스는 resume.ts가
+              각각 갖고 있으므로 slug로 셋을 모은다. */}
           {highlights.slice(0, 3).map((item) => {
             const project = getProjectBySlug(item.slug);
+            const study = caseStudies[item.slug];
+            const links =
+              study?.meta.find((cell) => cell.label === "LINKS")?.links ?? [];
             return (
               <Row key={item.slug} label={item.kicker}>
-                <strong className="text-[14px] print:text-[10pt]">
-                  {project?.title ?? item.title}
-                </strong>
-                <span className="ml-1.5 text-[12.5px] text-tertiary print:text-[9.5pt] print:text-[#666]">
-                  — {item.title}
-                </span>
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <strong className="text-[14px] print:text-[10pt]">
+                    {project?.title ?? item.title}
+                  </strong>
+                  {links.map((link) => (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-[11px] text-accent print:text-[8pt]"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
                 <p className="mt-1 text-[12.5px] leading-[1.7] text-muted print:text-[9.5pt] print:text-[#111]">
-                  {item.description}
+                  {study?.overview ?? item.description}
                 </p>
+                <ul className="mt-1.5 flex flex-col gap-1 text-[12.5px] leading-[1.7] text-muted print:text-[9.5pt] print:text-[#111]">
+                  {resume.projectCases[item.slug]?.map((line) => (
+                    <li key={line}>· {line}</li>
+                  ))}
+                </ul>
               </Row>
             );
           })}
