@@ -43,7 +43,9 @@ Expected: 전부 통과. 여기서 이미 실패하는 항목이 있으면 그�
 | `src/lib/password.ts` | SHA-256 해시 + 상수 시간 비교. 순수 함수만. Web Crypto만 사용 |
 | `src/lib/password.test.ts` | 위 검증 |
 | `src/components/contact/CopyEmail.tsx` | 이메일 클립보드 복사 버튼 + Gmail 보조 링크 |
-| `src/components/resume/ContactUnlock.tsx` | 비밀번호 입력 → 전화번호 표시 |
+| `src/components/resume/UnlockContext.tsx` | 해제된 전화번호 상태를 버튼과 표시 위치가 공유 |
+| `src/components/resume/DownloadButton.tsx` | 우측 상단 다운로드 버튼 + 비밀번호 모달 + 인쇄 트리거 |
+| `src/components/resume/PrintPhone.tsx` | 인쇄 결과물에만 나타나는 전화번호 행 |
 | `src/content/resume.ts` | 이력서 고유 콘텐츠(요약·성과 불릿·학력 상세·자격증·어학) |
 | `src/content/resume.test.ts` | 이력서 콘텐츠 스키마 검증 |
 | `src/content/home.test.ts` | 하이라이트 slug가 실재하는지 검증 |
@@ -1014,27 +1016,115 @@ git commit -m "feat: 이력서 콘텐츠와 빌드타임 스키마 검증"
 
 ---
 
-## Task 11: ContactUnlock 컴포넌트
+## Task 11: 다운로드 버튼과 잠금 모달
+
+동작 모델은 이렇다.
+
+1. `/resume`는 누구나 자유롭게 열람한다. 이 화면에 전화번호는 **없다**.
+2. 우측 상단 `이력서 다운로드` 버튼을 누르면 비밀번호 모달이 뜬다.
+3. 통과하면 전화번호를 받아 들고 곧바로 인쇄 다이얼로그를 연다.
+4. 전화번호는 **인쇄 결과물에만** 찍힌다. 해제 후에도 화면에는 표시하지 않는다.
+
+전화번호 상태를 버튼(우측 상단)과 표시 위치(연락처 블록)가 함께 봐야 하므로 컨텍스트로 공유한다. 세 파일로 나눈다.
 
 **Files:**
-- Create: `src/components/resume/ContactUnlock.tsx`
+- Create: `src/components/resume/UnlockContext.tsx`
+- Create: `src/components/resume/DownloadButton.tsx`
+- Create: `src/components/resume/PrintPhone.tsx`
 
-- [ ] **Step 1: 구현**
+- [ ] **Step 1: 컨텍스트 작성**
 
-Create `src/components/resume/ContactUnlock.tsx`:
+Create `src/components/resume/UnlockContext.tsx`:
 
 ```tsx
 "use client";
 
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 
-// 전화번호는 이 컴포넌트에 상수로 들어가지 않는다. 정적 HTML과 JS 번들 어디에도
-// 값이 없고, 오직 /api/resume-contact 응답으로만 주입된다.
-export function ContactUnlock() {
+type UnlockValue = {
+  phone: string | null;
+  setPhone: (phone: string) => void;
+};
+
+const UnlockContext = createContext<UnlockValue | null>(null);
+
+// 전화번호는 어디에도 상수로 들어가지 않는다. 정적 HTML과 JS 번들에 값이 없고,
+// /api/resume-contact 응답으로만 이 상태에 들어온다.
+export function UnlockProvider({ children }: { children: React.ReactNode }) {
   const [phone, setPhone] = useState<string | null>(null);
+  return (
+    <UnlockContext.Provider value={{ phone, setPhone }}>
+      {children}
+    </UnlockContext.Provider>
+  );
+}
+
+export function useUnlock(): UnlockValue {
+  const value = useContext(UnlockContext);
+  if (!value) throw new Error("UnlockProvider 안에서만 쓸 수 있다");
+  return value;
+}
+```
+
+- [ ] **Step 2: 인쇄 전용 전화번호 행 작성**
+
+Create `src/components/resume/PrintPhone.tsx`:
+
+```tsx
+"use client";
+
+import { useUnlock } from "@/components/resume/UnlockContext";
+
+// 해제 전에는 아무것도 렌더하지 않고, 해제 후에도 화면에는 보이지 않는다.
+// hidden print:flex — 오직 인쇄 결과물에만 나타난다.
+export function PrintPhone() {
+  const { phone } = useUnlock();
+  if (!phone) return null;
+
+  return (
+    <span className="hidden items-baseline gap-2.5 print:flex">
+      <span className="w-10 flex-none font-mono text-[10.5px] text-[#666]">
+        phone
+      </span>
+      <span>{phone}</span>
+    </span>
+  );
+}
+```
+
+- [ ] **Step 3: 다운로드 버튼과 모달 작성**
+
+Create `src/components/resume/DownloadButton.tsx`:
+
+```tsx
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useUnlock } from "@/components/resume/UnlockContext";
+
+export function DownloadButton() {
+  const { setPhone } = useUnlock();
+  const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    inputRef.current?.focus();
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") close();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  function close() {
+    setOpen(false);
+    setPassword("");
+    setError("");
+  }
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -1056,6 +1146,10 @@ export function ContactUnlock() {
       }
       const data = (await response.json()) as { phone: string };
       setPhone(data.phone);
+      close();
+      // 전화번호가 DOM에 반영된 뒤 인쇄 다이얼로그를 연다.
+      // 같은 틱에 호출하면 번호가 빠진 채로 인쇄될 수 있다.
+      requestAnimationFrame(() => window.print());
     } catch {
       setError("요청에 실패했습니다.");
     } finally {
@@ -1063,38 +1157,71 @@ export function ContactUnlock() {
     }
   }
 
-  if (phone) {
-    return <span className="text-ink">{phone}</span>;
-  }
-
   return (
-    // 인쇄 시 입력 UI는 사라진다. 해제한 뒤 인쇄하면 위 분기를 타 번호가 찍힌다.
-    <form onSubmit={submit} className="flex flex-wrap items-center gap-2 print:hidden">
-      <span className="font-mono text-[11px] text-faint">🔒</span>
-      <input
-        type="password"
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        placeholder="비밀번호"
-        aria-label="연락처 잠금 해제 비밀번호"
-        className="w-32 rounded border border-line bg-card px-2 py-1 font-mono text-[12px] text-ink"
-      />
+    <>
       <button
-        type="submit"
-        disabled={pending || password.length === 0}
-        className="cursor-pointer rounded border border-line px-2 py-1 font-mono text-[11px] text-accent disabled:opacity-40"
+        type="button"
+        onClick={() => setOpen(true)}
+        className="cursor-pointer rounded border border-line px-3 py-1.5 font-mono text-[11.5px] text-accent hover:border-accent print:hidden"
       >
-        {pending ? "확인 중" : "해제"}
+        ↓ 이력서 다운로드
       </button>
-      <span aria-live="polite" className="text-[11px] text-muted">
-        {error}
-      </span>
-    </form>
+
+      {open && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="이력서 다운로드"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6 print:hidden"
+          onClick={close}
+        >
+          <form
+            onSubmit={submit}
+            onClick={(event) => event.stopPropagation()}
+            className="flex w-full max-w-[320px] flex-col gap-3 rounded-lg border border-line bg-card p-6"
+          >
+            <p className="font-mono text-[11.5px] text-faint">
+              $ unlock resume.pdf
+            </p>
+            <p className="text-[12.5px] leading-[1.7] text-muted">
+              연락처가 포함된 이력서를 내려받습니다. 비밀번호를 입력하세요.
+            </p>
+            <input
+              ref={inputRef}
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              aria-label="이력서 다운로드 비밀번호"
+              className="rounded border border-line bg-page px-3 py-2 font-mono text-[13px] text-ink"
+            />
+            <span aria-live="polite" className="text-[11.5px] text-muted">
+              {error}
+            </span>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={close}
+                className="cursor-pointer px-3 py-1.5 font-mono text-[11.5px] text-faint"
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                disabled={pending || password.length === 0}
+                className="cursor-pointer rounded border border-line px-3 py-1.5 font-mono text-[11.5px] text-accent disabled:opacity-40"
+              >
+                {pending ? "확인 중" : "다운로드"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </>
   );
 }
 ```
 
-- [ ] **Step 2: 검사**
+- [ ] **Step 4: 검사**
 
 Run:
 ```bash
@@ -1102,11 +1229,11 @@ npm run typecheck && npm run lint
 ```
 Expected: 둘 다 PASS
 
-- [ ] **Step 3: 커밋**
+- [ ] **Step 5: 커밋**
 
 ```bash
-git add src/components/resume/ContactUnlock.tsx
-git commit -m "feat: 이력서 연락처 잠금 해제 컴포넌트"
+git add src/components/resume/UnlockContext.tsx src/components/resume/PrintPhone.tsx src/components/resume/DownloadButton.tsx
+git commit -m "feat: 이력서 다운로드 버튼과 비밀번호 모달"
 ```
 
 ---
@@ -1131,7 +1258,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { CopyEmail } from "@/components/contact/CopyEmail";
-import { ContactUnlock } from "@/components/resume/ContactUnlock";
+import { DownloadButton } from "@/components/resume/DownloadButton";
+import { PrintPhone } from "@/components/resume/PrintPhone";
+import { UnlockProvider } from "@/components/resume/UnlockContext";
 import { career, highlights, stackLines } from "@/content/home";
 import { resume } from "@/content/resume";
 import { site } from "@/lib/site";
@@ -1168,58 +1297,59 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 export default function ResumePage() {
   return (
-    <main id="main" className="min-h-screen bg-page print:bg-white">
-      <div className="resume-sheet mx-auto max-w-[860px] px-5 pb-20 md:px-10 print:max-w-none print:px-0 print:pb-0">
-        <div className="flex items-center justify-between gap-4 border-b border-line py-[22px] font-mono print:hidden">
-          <Link href="/" className="text-[12.5px] text-tertiary">
-            ← cd ~/dongwoobae
-          </Link>
-          <span className="text-xs text-faint">resume</span>
-        </div>
-
-        <header className="flex items-start justify-between gap-6 pt-10 print:pt-0">
-          <div>
-            <h1 className="text-[28px] font-bold print:text-[18pt]">
-              {site.name}
-            </h1>
-            <p className="mt-1.5 font-mono text-[12px] text-tertiary print:text-[9pt]">
-              backend-driven fullstack
-            </p>
-            <div className="mt-4 flex flex-col gap-1.5 text-[13px] print:text-[9pt]">
-              <span className="flex items-baseline gap-2.5">
-                <span className="w-10 flex-none font-mono text-[10.5px] text-faint">
-                  mail
-                </span>
-                <CopyEmail />
-              </span>
-              <span className="flex items-baseline gap-2.5">
-                <span className="w-10 flex-none font-mono text-[10.5px] text-faint">
-                  phone
-                </span>
-                <ContactUnlock />
-              </span>
-              <span className="flex items-baseline gap-2.5">
-                <span className="w-10 flex-none font-mono text-[10.5px] text-faint">
-                  web
-                </span>
-                <span className="text-muted">{site.url.replace(/^https?:\/\//, "")}</span>
-              </span>
-              <span className="flex items-baseline gap-2.5">
-                <span className="w-10 flex-none font-mono text-[10.5px] text-faint">
-                  git
-                </span>
-                <span className="text-muted">{site.githubLabel}</span>
-              </span>
-            </div>
+    // 전화번호 상태를 다운로드 버튼(우측 상단)과 인쇄 전용 행(연락처 블록)이
+    // 함께 봐야 하므로 페이지 전체를 provider로 감싼다.
+    <UnlockProvider>
+      <main id="main" className="min-h-screen bg-page print:bg-white">
+        <div className="resume-sheet mx-auto max-w-[860px] px-5 pb-20 md:px-10 print:max-w-none print:px-0 print:pb-0">
+          <div className="flex items-center justify-between gap-4 border-b border-line py-[22px] font-mono print:hidden">
+            <Link href="/" className="text-[12.5px] text-tertiary">
+              ← cd ~/dongwoobae
+            </Link>
+            <DownloadButton />
           </div>
-          <Image
-            src="/photo/dongwoo_photo.jpg"
-            alt="배동우 프로필 사진"
-            width={98}
-            height={124}
-            className="h-[124px] w-[98px] flex-none rounded border border-line object-cover object-top print:h-[33mm] print:w-[26mm] print:rounded-none"
-          />
-        </header>
+
+          <header className="flex items-start justify-between gap-6 pt-10 print:pt-0">
+            <div>
+              <h1 className="text-[28px] font-bold print:text-[18pt]">
+                {site.name}
+              </h1>
+              <p className="mt-1.5 font-mono text-[12px] text-tertiary print:text-[9pt]">
+                backend-driven fullstack
+              </p>
+              <div className="mt-4 flex flex-col gap-1.5 text-[13px] print:text-[9pt]">
+                <span className="flex items-baseline gap-2.5">
+                  <span className="w-10 flex-none font-mono text-[10.5px] text-faint">
+                    mail
+                  </span>
+                  <CopyEmail />
+                </span>
+                {/* 화면에는 전화번호가 없다. 해제 후에도 인쇄에만 나타난다. */}
+                <PrintPhone />
+                <span className="flex items-baseline gap-2.5">
+                  <span className="w-10 flex-none font-mono text-[10.5px] text-faint">
+                    web
+                  </span>
+                  <span className="text-muted">
+                    {site.url.replace(/^https?:\/\//, "")}
+                  </span>
+                </span>
+                <span className="flex items-baseline gap-2.5">
+                  <span className="w-10 flex-none font-mono text-[10.5px] text-faint">
+                    git
+                  </span>
+                  <span className="text-muted">{site.githubLabel}</span>
+                </span>
+              </div>
+            </div>
+            <Image
+              src="/photo/dongwoo_photo.jpg"
+              alt="배동우 프로필 사진"
+              width={98}
+              height={124}
+              className="h-[124px] w-[98px] flex-none rounded border border-line object-cover object-top print:h-[33mm] print:w-[26mm] print:rounded-none"
+            />
+          </header>
 
         <SectionHead>요약</SectionHead>
         <ul className="flex flex-col gap-1.5 text-[13px] leading-[1.7] text-muted print:text-[9.5pt] print:text-[#111]">
@@ -1290,19 +1420,22 @@ export default function ResumePage() {
             </span>
           </Row>
         ))}
-      </div>
-    </main>
+        </div>
+      </main>
+    </UnlockProvider>
   );
 }
 ```
+
+> `<header>` 이후의 섹션들은 위 코드에서 들여쓰기가 한 단계 얕게 남아 있다. `UnlockProvider`로 한 겹 더 감쌌기 때문이다. 다음 Step의 `npm run format`이 정리하므로 손으로 맞추지 않아도 된다. 중요한 건 닫는 태그 순서(`</div>` → `</main>` → `</UnlockProvider>`)다.
 
 - [ ] **Step 3: 검사**
 
 Run:
 ```bash
-npm run typecheck && npm run lint
+npm run format && npm run typecheck && npm run lint
 ```
-Expected: 둘 다 PASS
+Expected: 전부 PASS
 
 - [ ] **Step 4: 화면 확인**
 
@@ -1478,34 +1611,57 @@ test("이력서 페이지가 전 섹션을 렌더한다", async ({ page }) => {
   await expect(page.getByText("메디케이시스템")).toBeVisible();
 });
 
-test("잠금 전에는 전화번호가 어디에도 없다", async ({ page }) => {
+test("공개 열람 화면에는 전화번호가 없다", async ({ page }) => {
   await page.goto("/resume");
   await expect(page.locator("body")).not.toContainText(PHONE);
 
-  // 정적 HTML 자체에도 없어야 한다. 클라이언트 렌더로 가려두는 것과는 다르다.
+  // 정적 HTML 자체에도 없어야 한다. CSS로 가려두는 것과는 다르다.
   const html = await page.content();
   expect(html).not.toContain(PHONE);
 });
 
-test("오답을 넣어도 전화번호가 나오지 않는다", async ({ page }) => {
+test("오답을 넣으면 전화번호가 나오지 않는다", async ({ page }) => {
   await page.goto("/resume");
 
-  await page.getByLabel("연락처 잠금 해제 비밀번호").fill("definitely-wrong");
-  await page.getByRole("button", { name: "해제" }).click();
+  await page.getByRole("button", { name: "이력서 다운로드" }).click();
+  await page.getByLabel("이력서 다운로드 비밀번호").fill("definitely-wrong");
+  await page.getByRole("button", { name: "다운로드" }).click();
 
   await expect(page.getByText("비밀번호가 올바르지 않습니다.")).toBeVisible();
   await expect(page.locator("body")).not.toContainText(PHONE);
 });
 
-test("정답을 넣으면 전화번호가 나온다", async ({ page }) => {
+test("정답을 넣으면 인쇄에만 전화번호가 나타난다", async ({ page }) => {
+  // window.print()는 헤드리스에서 다이얼로그를 띄우려다 멈출 수 있어 막아 둔다.
+  await page.addInitScript(() => {
+    window.print = () => {};
+  });
   await page.goto("/resume");
 
-  await page.getByLabel("연락처 잠금 해제 비밀번호").fill(PASSWORD);
-  await page.getByRole("button", { name: "해제" }).click();
+  await page.getByRole("button", { name: "이력서 다운로드" }).click();
+  await page.getByLabel("이력서 다운로드 비밀번호").fill(PASSWORD);
+  await page.getByRole("button", { name: "다운로드" }).click();
 
+  // 모달이 닫힌다.
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  // 화면(screen)에서는 해제 후에도 보이지 않는다.
+  await page.emulateMedia({ media: "screen" });
+  await expect(page.getByText(PHONE)).toBeHidden();
+
+  // 인쇄 미디어에서만 나타난다.
+  await page.emulateMedia({ media: "print" });
   await expect(page.getByText(PHONE)).toBeVisible();
-  // 해제 후에는 입력 폼이 사라진다.
-  await expect(page.getByLabel("연락처 잠금 해제 비밀번호")).toHaveCount(0);
+});
+
+test("모달을 ESC로 닫을 수 있다", async ({ page }) => {
+  await page.goto("/resume");
+
+  await page.getByRole("button", { name: "이력서 다운로드" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 });
 
 // 이 헤더가 없으면 엣지가 성공 응답을 캐시할 수 있고, 그 순간 잠금이 무의미해진다.
