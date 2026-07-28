@@ -35,7 +35,7 @@ export const career = [
 // 상단 2장은 강조 스타일(보더 line-accent + 그라데이션). slug는 상세 페이지 링크용.
 export const highlights = [
   {
-    slug: "ycc-church",
+    slug: "ycc-website",
     kicker: "websub → qstash → gemini",
     title: "폴링 없는 설교 자동화 파이프라인",
     description:
@@ -43,7 +43,7 @@ export const highlights = [
     accent: true,
   },
   {
-    slug: "ankang-welfare",
+    slug: "ankang-sumgim",
     kicker: "face-api.js + sharp",
     title: "게시 사진 얼굴 자동 블러",
     description:
@@ -51,7 +51,7 @@ export const highlights = [
     accent: true,
   },
   {
-    slug: "ku-barrier-free-map",
+    slug: "modu-campus",
     kicker: "overpass 3-server fallback",
     title: "경사도 오버레이 + 법정 기준 시각화",
     description:
@@ -59,7 +59,7 @@ export const highlights = [
     accent: false,
   },
   {
-    slug: "vehicle-manufacturer",
+    slug: "worldengco",
     kicker: "wix → d1 · dry-run/apply",
     title: "Wix 사이트 데이터 자체 서비스 이관",
     description:
