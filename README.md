@@ -17,6 +17,7 @@
 - `/resume`는 `noindex`이고 sitemap에서 빠집니다. 다만 이는 검색 노출 방지일 뿐 접근 통제가 아니라, 본문은 공개 전제로 씁니다.
 - 사이트 URL은 `NEXT_PUBLIC_SITE_URL` 하나만 봅니다. `src/lib/site.ts`의 `site.url`이 유일한 소비 지점이고 sitemap·robots·JSON-LD·OG가 모두 이를 경유합니다. 컴포넌트에 절대 URL을 직접 쓰지 않습니다.
 - 옛 URL(`/projects`, `/about`, 구 slug)은 `next.config.ts`의 `redirects()`가 새 위치로 넘깁니다.
+- 방문 집계는 Cloudflare Web Analytics의 자동 설정이 담당합니다. 프록시가 비콘을 응답에 주입하므로 저장소에는 계측 코드가 사실상 없습니다. `layout.tsx`에 수동 주입 경로가 남아 있지만 `NEXT_PUBLIC_CF_BEACON_TOKEN`을 채우면 비콘이 두 번 발사돼 중복 집계되므로, 자동 설정을 끄지 않는 한 이 값은 비워 둡니다.
 
 클라이언트 상태는 다섯입니다 — 히어로 타이핑 진행도, 스크롤 스파이 활성 섹션, 목록 hover 미리보기, 이메일 복사 피드백, 이력서 연락처 잠금 해제. 나머지는 전부 서버 컴포넌트입니다.
 
