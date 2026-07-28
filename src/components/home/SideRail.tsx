@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { CopyEmail } from "@/components/contact/CopyEmail";
 import { RailNav } from "@/components/home/RailNav";
 import { stackLines } from "@/content/home";
 import { site } from "@/lib/site";
@@ -43,12 +44,7 @@ export function SideRail() {
         <p className="font-mono text-[11px] text-faint">$ cat contact.txt</p>
         <div className="flex flex-col gap-2.5 text-[13px]">
           <ContactRow label="mail">
-            <a
-              href={`mailto:${site.email}`}
-              className="font-medium text-accent"
-            >
-              {site.email}
-            </a>
+            <CopyEmail />
           </ContactRow>
           <ContactRow label="github">
             <a href={site.github} className="text-muted">

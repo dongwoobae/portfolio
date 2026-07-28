@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CopyEmail } from "@/components/contact/CopyEmail";
 import { HeroTitle } from "@/components/home/HeroTitle";
 import { ProjectList } from "@/components/home/ProjectList";
 import { Section } from "@/components/home/Section";
@@ -136,18 +137,9 @@ export default function HomePage() {
         </Section>
 
         <footer className="flex flex-col gap-3 border-t border-line px-6 py-7 md:flex-row md:items-center md:justify-between md:px-13">
-          <a
-            href={`mailto:${site.email}`}
-            className="font-mono text-[13px] text-accent"
-          >
-            $ mail {site.email}
-            <span
-              className="text-ink"
-              style={{ animation: "blink 1s step-end infinite" }}
-            >
-              ▊
-            </span>
-          </a>
+          <span className="font-mono text-[13px] text-faint">
+            $ mail <CopyEmail />
+          </span>
           <span className="font-mono text-xs text-faint">
             {site.githubLabel}
           </span>
