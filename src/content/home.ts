@@ -1,5 +1,7 @@
 // 메인 랜딩의 카피. 디자인 핸드오프(design/Portfolio.dc.html)의 문안을 그대로 옮겼다.
 
+import { careerItemSchema, type CareerItem } from "@/content/schema";
+
 export const heroIntro =
   "기획부터 배포·운영까지 책임집니다. 실서비스 2건 운영 중 — 얼굴 자동 블러, WebSub 이벤트 파이프라인, 서버리스 메시지 큐 같은 문제를 코드로 풉니다.";
 
@@ -10,27 +12,41 @@ export const stackLines = [
   { label: "Infra", value: "Cloudflare · Vercel · GH Actions" },
 ] as const;
 
-export const career = [
+const rawCareer = [
   {
-    period: "2024.11 —",
+    period: "2026.04 —",
+    kind: "job",
     current: true,
-    title: "웹 개발자 재직",
-    description:
-      "· 한약안전사용플랫폼 1인 PM·개발 → Spring Boot·NestJS·Next.js 실무",
+    title: "모바일이앤엠애드",
+    description: "· 이팝콘 다이렉트(오픈몰) 백엔드 · AWS 서버 설계·배포",
+  },
+  {
+    period: "2024.11–2025.07",
+    kind: "job",
+    current: false,
+    title: "메디케이시스템",
+    description: "· 한약안전사용플랫폼 1인 담당 — 기획·데이터 수집·개발",
   },
   {
     period: "2024.03–09",
+    kind: "education",
     current: false,
     title: "네이버클라우드 데브옵스 과정",
     description: "· 클라우드 기반 웹 개발자 과정 수료 · NCA·NCP 자격 취득",
   },
   {
-    period: "— 2024",
+    period: "— 2022.08",
+    kind: "education",
     current: false,
     title: "고려대학교 졸업",
     description: "· 지구환경과학과",
   },
-] as const;
+];
+
+// 빌드타임 검증 — 형식이 틀리면 여기서 빌드가 깨진다.
+export const career: CareerItem[] = rawCareer.map((item) =>
+  careerItemSchema.parse(item),
+);
 
 // 상단 2장은 강조 스타일(보더 line-accent + 그라데이션). slug는 상세 페이지 링크용.
 export const highlights = [

@@ -29,3 +29,15 @@ export const projectMetaSchema = z.object({
 });
 
 export type ProjectMeta = z.infer<typeof projectMetaSchema>;
+
+// 랜딩의 `$ git log --career` 행이자 이력서의 경력·학력 원천.
+// 이력서는 경력과 학력을 분리해 싣기 때문에 kind로 갈라 쓴다.
+export const careerItemSchema = z.object({
+  period: z.string().min(1),
+  kind: z.enum(["job", "education"]),
+  current: z.boolean(),
+  title: z.string().min(1),
+  description: z.string().min(1),
+});
+
+export type CareerItem = z.infer<typeof careerItemSchema>;

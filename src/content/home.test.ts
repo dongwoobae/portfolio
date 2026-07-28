@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { highlights } from "@/content/home";
+import { career, highlights } from "@/content/home";
 import { projects } from "@/content/projects/meta";
 
 describe("랜딩 하이라이트", () => {
@@ -12,5 +12,20 @@ describe("랜딩 하이라이트", () => {
         true,
       );
     }
+  });
+});
+
+describe("경력 데이터", () => {
+  it("재직 2건과 교육·학력 2건으로 분류된다", () => {
+    expect(career.filter((item) => item.kind === "job")).toHaveLength(2);
+    expect(career.filter((item) => item.kind === "education")).toHaveLength(2);
+  });
+
+  it("현재 재직은 정확히 1건이다", () => {
+    expect(career.filter((item) => item.current)).toHaveLength(1);
+  });
+
+  it("현재 재직은 목록 맨 앞에 온다", () => {
+    expect(career[0].current).toBe(true);
   });
 });
