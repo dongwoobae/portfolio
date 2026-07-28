@@ -55,6 +55,18 @@ export default function RootLayout({
             }),
           }}
         />
+        {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
+          // Cloudflare Web Analytics. 쿠키를 쓰지 않는 익명 집계라 동의 배너가
+          // 필요 없다. 토큰이 없으면 아예 렌더하지 않아 로컬 개발과 E2E에
+          // 영향을 주지 않는다.
+          <script
+            defer
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={JSON.stringify({
+              token: process.env.NEXT_PUBLIC_CF_BEACON_TOKEN,
+            })}
+          />
+        )}
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:font-medium focus:text-page"
