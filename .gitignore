@@ -47,7 +47,9 @@ next-env.d.ts
 .wrangler
 # 로컬 secret 값. 절대 커밋하지 않는다 (운영은 wrangler secret put).
 .dev.vars
-# cloudflare-env.d.ts는 생성물이지만 커밋한다. CI에 cf-typegen 스텝이 없어서
-# 이 파일이 없으면 RESUME_* secret 타입이 사라지고 typecheck가 깨진다.
+# wrangler types 생성물(workerd 런타임 타입 14,000줄). 재생성할 때마다 수동 추가분을
+# 지우고 prettier도 통과하지 못한다. 코드가 실제로 쓰는 바인딩은 src/cloudflare-env.d.ts에
+# 손으로 선언하므로 이 생성물은 커밋하지 않는다.
+cloudflare-env.d.ts
 test-results
 playwright-report
