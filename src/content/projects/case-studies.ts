@@ -12,7 +12,15 @@ export type MetaCell = {
   links?: { label: string; href: string }[];
 };
 
-export type Shot = { src: string; alt: string };
+/** 브라우저 창 프레임의 제목 줄에 뜨는 화면 이름이 label이다. */
+export type Shot = { src: string; alt: string; label: string };
+
+/**
+ * 상세 페이지 스크린샷 아래에 기기 프레임으로 붙는 모바일 화면.
+ * `scripts/capture-mobile.mjs`가 라이브 사이트를 폭 390px로 찍어 만든다
+ * (세로는 화면마다 다르다) — 로그인이 필요한 관리자 화면은 대상이 아니다.
+ */
+export type MobileShot = { src: string; alt: string; note: string };
 
 export type Card = { title: string; description: string; accent?: boolean };
 
@@ -28,7 +36,7 @@ export type CaseStudy = {
   meta: MetaCell[];
   /** 한 줄에 나란히 놓을 스크린샷끼리 묶는다. 줄당 1~3장. */
   shotRows: Shot[][];
-  shotsCaption?: string;
+  mobileShot?: MobileShot;
   sections: CaseStudySection[];
 };
 
@@ -61,28 +69,35 @@ export const caseStudies: Record<string, CaseStudy> = {
       [
         {
           src: "/screenshots/modu-map.png",
+          label: "배리어프리 지도 — 한 / EN / 中文",
           alt: "배리어프리 지도 화면 — 캠퍼스 건물과 접근성 시설이 표시된 지도",
         },
       ],
       [
         {
           src: "/screenshots/modu-admin-buildings.png",
+          label: "관리자 — 건물 관리",
           alt: "관리자 콘솔의 건물 관리 목록",
         },
         {
           src: "/screenshots/modu-facility-add.png",
+          label: "관리자 — 시설 추가",
           alt: "관리자 콘솔의 접근성 시설 추가 화면",
         },
       ],
       [
         {
           src: "/screenshots/modu-building-detail.png",
+          label: "건물 상세 — 시설 현황 · 음성 읽기 · 시설 사진",
           alt: "건물 상세 패널 — 시설 현황과 시설 사진",
         },
       ],
     ],
-    shotsCaption:
-      "↑ 배리어프리 지도 (한/EN/中文) / 관리자 콘솔 — 건물 관리 / 시설 추가 / 건물 상세 — 시설 현황·음성 읽기·시설 사진",
+    mobileShot: {
+      src: "/screenshots/mobile/modu-campus-mobile.png",
+      alt: "모두의 캠퍼스 모바일 화면 — 건물 검색, 시설 필터, 지도 위 접근성 시설 마커",
+      note: "캠퍼스를 이동하면서 보는 지도라 모바일이 실사용 화면입니다. 건물 검색·시설 필터·현재 지도 목록을 지도 위에 겹쳐 두어, 화면 전환 없이 한 손으로 조작할 수 있게 배치했습니다.",
+    },
     sections: [
       {
         heading: "## 문제",
@@ -148,22 +163,28 @@ export const caseStudies: Record<string, CaseStudy> = {
       [
         {
           src: "/screenshots/sumgim-home.png",
+          label: "공개 홈페이지",
           alt: "안강 섬김 노인복지센터 공개 홈페이지",
         },
       ],
       [
         {
           src: "/screenshots/sumgim-admin-dashboard.png",
+          label: "관리자 — 대시보드",
           alt: "운영자 CMS 대시보드",
         },
         {
           src: "/screenshots/sumgim-blur-gallery.png",
+          label: "사진 관리 — 얼굴 자동 블러 적용",
           alt: "얼굴 자동 블러가 적용된 사진 관리 화면",
         },
       ],
     ],
-    shotsCaption:
-      "↑ 공개 홈페이지 / 관리자 대시보드 / 얼굴 자동 블러가 실제 적용된 사진 관리 화면",
+    mobileShot: {
+      src: "/screenshots/mobile/ankang-sumgim-mobile.png",
+      alt: "안강 섬김 복지센터 모바일 홈 — 센터 소개 문구와 전화 걸기 버튼, 운영 지표",
+      note: "센터 문의는 대부분 전화로 들어옵니다. 모바일 첫 화면에서 스크롤 없이 전화번호를 누를 수 있게 두고, 운영 연차·서비스 지역 같은 신뢰 지표를 바로 아래 붙였습니다.",
+    },
     sections: [
       {
         heading: "## 문제",
@@ -233,16 +254,26 @@ export const caseStudies: Record<string, CaseStudy> = {
       },
     ],
     shotRows: [
-      [{ src: "/screenshots/ycc-home.png", alt: "영천중앙교회 공개 홈페이지" }],
+      [
+        {
+          src: "/screenshots/ycc-home.png",
+          alt: "영천중앙교회 공개 홈페이지",
+          label: "공개 홈페이지",
+        },
+      ],
       [
         {
           src: "/screenshots/ycc-admin-sermons.png",
+          label: "관리자 CMS — 설교 관리 · YouTube 동기화 · AI 요약",
           alt: "관리자 CMS의 설교 관리 화면 — YouTube 동기화와 AI 요약 상태",
         },
       ],
     ],
-    shotsCaption:
-      "↑ 공개 홈페이지 / 관리자 CMS — 설교 관리 (YouTube 동기화·AI 요약 상태)",
+    mobileShot: {
+      src: "/screenshots/mobile/ycc-website-mobile.png",
+      alt: "영천중앙교회 모바일 설교 목록 — 예배·설교 히어로, 예배·찬양 탭, 예배 종류 필터와 설교 영상 카드",
+      note: "성도 대부분이 휴대폰으로 설교를 다시 봅니다. 예배 종류 필터·검색·정렬을 목록 위에 그대로 올리고, 카드마다 썸네일과 AI 요약 한 줄을 붙여 스크롤만으로 원하는 설교를 찾게 했습니다.",
+    },
     sections: [
       {
         heading: "## 설교 자동 동기화 — WebSub 푸시",
@@ -323,26 +354,33 @@ export const caseStudies: Record<string, CaseStudy> = {
       [
         {
           src: "/screenshots/worldeng-home.png",
+          label: "공개 홈페이지",
           alt: "월드ENC.CO 공개 홈페이지",
         },
       ],
       [
         {
           src: "/screenshots/worldeng-admin-booking.png",
+          label: "관리자 — 예약 관리 · 휴무/영업일 지정",
           alt: "관리자 예약 관리 화면 — 휴무·영업일 지정",
         },
         {
           src: "/screenshots/worldeng-admin-board.png",
+          label: "관리자 — 출고차량 게시판",
           alt: "관리자 출고차량 게시판",
         },
         {
           src: "/screenshots/worldeng-admin-staff.png",
+          label: "관리자 — 직원 계정 관리",
           alt: "관리자 직원 계정 관리 화면",
         },
       ],
     ],
-    shotsCaption:
-      "↑ 공개 홈페이지 / 관리자 — 예약 관리(휴무·영업일 지정) / 출고차량 게시판 / 직원 계정 관리",
+    mobileShot: {
+      src: "/screenshots/mobile/worldengco-mobile.png",
+      alt: "월드ENC.CO 모바일 홈 — 제작 소개 문구와 견적 문의·A/S 예약 버튼",
+      note: "견적 문의를 받는 것이 이 사이트의 목적입니다. 모바일 첫 화면에서 무엇을 만드는 회사인지 두 줄로 밝히고, 견적 문의와 A/S·교육 예약 버튼을 그 아래 나란히 두어 스크롤 없이 전환되게 했습니다.",
+    },
     sections: [
       {
         heading: "## 핵심 작업",
@@ -402,10 +440,16 @@ export const caseStudies: Record<string, CaseStudy> = {
       [
         {
           src: "/screenshots/hmsu-home.png",
+          label: "공개 메인 화면",
           alt: "한약안전사용 플랫폼 메인 화면",
         },
       ],
     ],
+    mobileShot: {
+      src: "/screenshots/mobile/hmsu-mobile.png",
+      alt: "한약안전사용 플랫폼 모바일 메인 — 처방 검색창과 주요 안내 카드",
+      note: "처방 정보를 찾으러 오는 사이트라, 모바일에서도 검색창을 첫 화면 가운데에 두고 자주 찾는 처방을 바로 아래 칩으로 노출했습니다. 안내·문의 진입점은 그다음 순서로 내렸습니다.",
+    },
     sections: [
       {
         heading: "## 역할",

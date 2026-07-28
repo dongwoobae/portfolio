@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 
 const PROJECT_SLUGS = [
   "modu-campus",
@@ -12,6 +12,9 @@ test("메인에 레일·히어로·전 섹션이 보인다", async ({ page }) =>
   await page.goto("/");
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("배동우");
+  // 후킹 문장은 타이핑을 기다리지 않고 첫 화면에 바로 떠 있어야 한다.
+  await expect(page.getByText("운영자가 매일 반복하던 일을,")).toBeInViewport();
+  await expect(page.getByText("코드가 대신하게")).toBeInViewport();
   await expect(
     page.getByRole("img", { name: "배동우 프로필 사진" }),
   ).toBeVisible();
@@ -71,12 +74,66 @@ test("프로젝트 상세 5장이 모두 뜨고 스크린샷이 로드된다", a
     // 경로가 틀리거나 최적화가 실패하면 자연 크기가 0으로 남는다.
     const hero = page.getByRole("img").first();
     await expect(hero).toBeVisible();
-    await expect
-      .poll(() => hero.evaluate((img: HTMLImageElement) => img.naturalWidth), {
-        message: `${slug} 스크린샷 로드`,
-        timeout: 30_000,
-      })
-      .toBeGreaterThan(0);
+    await expectUncropped(hero, `${slug} 대표 스크린샷`);
+  }
+});
+
+/**
+ * 고정 높이 + object-cover로 그리면 와이드 스크린샷의 좌우가 잘려 나간다.
+ * 그려진 비율이 원본 비율과 같은지로 잘림을 잡는다.
+ * (원본 PNG가 커서 dev 서버의 이미지 최적화가 느리다 — 넉넉히 기다린다.)
+ */
+async function expectUncropped(shot: Locator, label: string) {
+  await expect
+    .poll(() => shot.evaluate((img: HTMLImageElement) => img.naturalWidth), {
+      message: `${label} 로드`,
+      timeout: 60_000,
+    })
+    .toBeGreaterThan(0);
+
+  const ratios = await shot.evaluate((img: HTMLImageElement) => ({
+    drawn: img.clientWidth / img.clientHeight,
+    natural: img.naturalWidth / img.naturalHeight,
+  }));
+  expect(
+    Math.abs(ratios.drawn - ratios.natural),
+    `${label}이 잘렸다 (그려진 ${ratios.drawn.toFixed(3)} vs 원본 ${ratios.natural.toFixed(3)})`,
+  ).toBeLessThan(0.02);
+}
+
+// 잘림은 CaseStudyShots의 레이아웃 문제라 한 페이지를 전수로 보면 잡힌다.
+// 스크린샷이 제일 많고 1장·3장 줄이 섞인 modu-campus를 대표로 훑는다.
+// (나머지 4장은 위 테스트가 대표 스크린샷 한 장씩 확인한다.)
+test("상세 스크린샷이 줄 구성과 무관하게 잘리지 않는다", async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.goto("/projects/modu-campus");
+
+  const shots = page.locator("figure img");
+  await expect(shots.first()).toBeVisible();
+
+  // 지연 로드분까지 한 번에 요청이 나가게 끝까지 내린다.
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page
+    .waitForLoadState("networkidle", { timeout: 10_000 })
+    .catch(() => {});
+
+  const count = await shots.count();
+  expect(count, "데스크톱 4장 + 모바일 1장").toBe(5);
+  for (let index = 0; index < count; index += 1) {
+    await expectUncropped(shots.nth(index), `modu-campus 스크린샷 ${index}`);
+  }
+});
+
+test("상세마다 모바일 화면이 함께 뜬다", async ({ page }) => {
+  for (const slug of PROJECT_SLUGS) {
+    await page.goto(`/projects/${slug}`);
+
+    const mobile = page.getByRole("img", { name: /모바일/ });
+    await expect(mobile, `${slug} 모바일 화면`).toBeVisible();
+    // 촬영 당시 논리 해상도를 원본 PNG에서 계산해 붙인다.
+    await expect(
+      page.getByText(/^390 × \d+ · 실제 서비스 화면$/),
+    ).toBeVisible();
   }
 });
 

@@ -4,7 +4,8 @@ import { HeroTitle } from "@/components/home/HeroTitle";
 import { ProjectList } from "@/components/home/ProjectList";
 import { Section } from "@/components/home/Section";
 import { SideRail } from "@/components/home/SideRail";
-import { career, heroIntro, highlights, team } from "@/content/home";
+import { career, heroHook, heroIntro, highlights, team } from "@/content/home";
+import { getScreenshot } from "@/content/projects/screenshots";
 import { getProjectsInOrder } from "@/lib/projects";
 import { site } from "@/lib/site";
 
@@ -19,8 +20,29 @@ export default function HomePage() {
         <div className="px-6 py-12 md:px-13 md:pt-18 md:pb-14">
           <p className="mb-5 font-mono text-[13px] text-faint">$ whoami</p>
           <HeroTitle />
-          <p className="mt-5 max-w-[600px] text-[15px] leading-[1.8] text-pretty text-muted">
-            {heroIntro}
+
+          {/* 첫 화면에서 제일 먼저 읽혀야 하는 문장. 타이핑을 기다리지 않고 바로 떠 있다. */}
+          <p className="mt-6 max-w-[620px] text-[21px] leading-[1.5] font-medium tracking-[-0.01em] text-ink sm:text-[23px] md:text-[26px]">
+            {heroHook.map((line, index) => (
+              <span key={index} className="block">
+                {line.map((segment) => (
+                  <span
+                    key={segment.text}
+                    className={segment.accent ? "text-accent" : undefined}
+                  >
+                    {segment.text}
+                  </span>
+                ))}
+              </span>
+            ))}
+          </p>
+
+          <p className="mt-6 max-w-[620px] text-[15px] leading-[1.8] text-pretty text-muted">
+            {heroIntro.map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
           </p>
         </div>
 
@@ -106,7 +128,7 @@ export default function HomePage() {
               summary: project.summary,
               stackLine: project.stackLine,
               badge: project.badge,
-              preview: project.preview,
+              preview: getScreenshot(project.preview),
             }))}
           />
         </Section>

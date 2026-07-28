@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -10,11 +10,12 @@ export type ProjectRow = {
   summary: string;
   stackLine: string;
   badge: { label: string; tone: "accent" | "muted" };
-  preview: string;
+  /** 서버에서 매니페스트로 풀어 넘긴다 — 원본 비율을 알아야 잘라내지 않고 그린다. */
+  preview: StaticImageData;
 };
 
 export function ProjectList({ projects }: { projects: ProjectRow[] }) {
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<StaticImageData | null>(null);
 
   return (
     <>
@@ -48,10 +49,11 @@ export function ProjectList({ projects }: { projects: ProjectRow[] }) {
         ))}
       </div>
 
-      {/* 우하단 미리보기. 포인터가 있는 넓은 화면에서만 띄운다. */}
+      {/* 우하단 미리보기. 포인터가 있는 넓은 화면에서만 띄운다.
+          화면 전체가 보여야 미리보기 구실을 하므로 잘라내지 않고 담는다. */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none fixed right-7 bottom-7 z-50 hidden h-[215px] w-[360px] overflow-hidden rounded-lg border border-line-accent bg-card shadow-[0_16px_48px_rgba(0,0,0,.55)] transition-[opacity,transform] duration-[180ms] xl:block ${
+        className={`pointer-events-none fixed right-7 bottom-7 z-50 hidden h-[215px] w-[360px] items-center justify-center overflow-hidden rounded-lg border border-line-accent bg-card shadow-[0_16px_48px_rgba(0,0,0,.55)] transition-[opacity,transform] duration-[180ms] xl:flex ${
           preview ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
         }`}
       >
@@ -59,9 +61,8 @@ export function ProjectList({ projects }: { projects: ProjectRow[] }) {
           <Image
             src={preview}
             alt=""
-            fill
             sizes="360px"
-            className="object-cover object-top"
+            className="h-auto max-h-full w-full object-contain"
           />
         )}
       </div>

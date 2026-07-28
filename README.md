@@ -59,4 +59,13 @@ npm run preview
 
 ## 프로젝트 스크린샷
 
-`public/screenshots/`에 넣습니다. 목록은 [`public/screenshots/README.md`](public/screenshots/README.md)를 참고하세요. 경로가 실제 파일과 어긋나면 `npm test`가 깨집니다.
+`public/screenshots/`에 넣고, [`src/content/projects/screenshots.ts`](src/content/projects/screenshots.ts)에 한 줄 등록합니다. 목록은 [`public/screenshots/README.md`](public/screenshots/README.md)를 참고하세요. 등록을 빠뜨리거나 경로가 실제 파일과 어긋나면 `npm test`가 깨집니다.
+
+모바일 화면(`public/screenshots/mobile/`)은 라이브 사이트에서 직접 찍습니다:
+
+```bash
+npm run shots:mobile               # 5개 사이트 전부
+npm run shots:mobile ycc-website   # 일부만
+```
+
+촬영 대상 URL과 화면 높이는 [`scripts/capture-mobile.mjs`](scripts/capture-mobile.mjs)의 `TARGETS`에 있습니다. 로그인이 필요한 관리자 화면은 자동 촬영 대상이 아닙니다.

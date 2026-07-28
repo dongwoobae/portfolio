@@ -85,7 +85,7 @@ export default async function ProjectPage({
           ))}
         </dl>
 
-        <CaseStudyShots rows={study.shotRows} caption={study.shotsCaption} />
+        <CaseStudyShots rows={study.shotRows} mobile={study.mobileShot} />
 
         <CaseStudyBody sections={study.sections} />
 

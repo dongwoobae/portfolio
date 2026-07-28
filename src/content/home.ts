@@ -2,8 +2,23 @@
 
 import { careerItemSchema, type CareerItem } from "@/content/schema";
 
-export const heroIntro =
-  "기획부터 배포·운영까지 책임집니다. 실서비스 2건 운영 중이고 첫 홈페이지를 본 곳들의 소개로 의뢰가 이어졌습니다 — 얼굴 자동 블러, WebSub 이벤트 파이프라인, 서버리스 메시지 큐 같은 문제를 코드로 풉니다.";
+/**
+ * 첫 화면에서 제일 먼저 읽히는 한 문장. 스크롤을 내릴지 말지가 여기서 갈리므로
+ * 기술 나열보다 앞에 둔다. 줄바꿈은 자동에 맡기지 않고 여기서 끊는다 —
+ * 한 줄이 한 호흡이어야 짧게 읽힌다(좁은 화면에서는 자연스럽게 더 접힌다).
+ */
+export const heroHook: { text: string; accent?: boolean }[][] = [
+  [{ text: "운영자가 매일 반복하던 일을," }],
+  [{ text: "코드가 대신하게", accent: true }, { text: " 만듭니다." }],
+];
+
+/** 후킹 문장 아래 받쳐 주는 설명. 마찬가지로 줄 단위로 끊어 둔다. */
+export const heroIntro = [
+  "기획부터 배포·운영까지 책임집니다.",
+  "실서비스 2건 운영 중이고 첫 홈페이지를 본 곳들의 소개로 의뢰가 이어졌습니다",
+  "— 얼굴 자동 블러, WebSub 이벤트 파이프라인, 서버리스 메시지 큐 같은",
+  "문제를 코드로 풉니다.",
+];
 
 export const stackLines = [
   { label: "Backend", value: "Java · Spring Boot · NestJS" },
@@ -48,7 +63,8 @@ export const career: CareerItem[] = rawCareer.map((item) =>
   careerItemSchema.parse(item),
 );
 
-// 상단 2장은 강조 스타일(보더 line-accent + 그라데이션). slug는 상세 페이지 링크용.
+// 상단 2장은 강조 스타일(보더 line-accent + 그라데이션).
+// slug는 상세 페이지 링크용 — meta.ts의 slug와 같아야 리다이렉트를 거치지 않는다.
 export const highlights = [
   {
     slug: "ycc-website",
