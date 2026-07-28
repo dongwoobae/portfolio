@@ -50,6 +50,7 @@ next-env.d.ts
 # wrangler types 생성물(workerd 런타임 타입 14,000줄). 재생성할 때마다 수동 추가분을
 # 지우고 prettier도 통과하지 못한다. 코드가 실제로 쓰는 바인딩은 src/cloudflare-env.d.ts에
 # 손으로 선언하므로 이 생성물은 커밋하지 않는다.
-cloudflare-env.d.ts
+# 앞의 /가 없으면 src/cloudflare-env.d.ts(손으로 쓴 선언)까지 함께 무시된다.
+/cloudflare-env.d.ts
 test-results
 playwright-report
