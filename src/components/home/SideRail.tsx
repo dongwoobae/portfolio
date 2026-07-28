@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { CopyEmail } from "@/components/contact/CopyEmail";
 import { RailNav } from "@/components/home/RailNav";
 import { stackLines } from "@/content/home";
@@ -67,6 +68,12 @@ export function SideRail() {
       </div>
 
       <div className="flex flex-col gap-3.5 lg:mt-auto">
+        <Link
+          href="/resume"
+          className="font-mono text-[11.5px] text-accent hover:underline"
+        >
+          $ open resume
+        </Link>
         <RailNav />
         <span className="font-mono text-[11px] text-ghost">
           © 2026 Dongwoo Bae
