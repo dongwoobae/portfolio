@@ -69,6 +69,28 @@ a:hover {
   overflow-x: auto;
 }
 
+/* 라이트박스 배경. dialog는 top-layer에 렌더되므로 z-index 경쟁이 없다. */
+dialog::backdrop {
+  background: rgb(6 8 11 / 0.88);
+}
+
+/* 애니메이션을 끄도록 설정한 사용자에게는 페이드를 적용하지 않는다. */
+@media (prefers-reduced-motion: no-preference) {
+  dialog[open],
+  dialog[open]::backdrop {
+    animation: lightbox-in 140ms ease-out;
+  }
+}
+
+@keyframes lightbox-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* 이력서 인쇄 규격. 화면과 종이는 서로 다른 디자인이다. 화면(/resume)은 사이트와
    같은 다크 터미널 테마이고, 인쇄물만 흰 배경 + 파란 포인트의 일반적인 이력서
    형태로 갈아끼운다. 종이에서는 터미널 장식(프롬프트 접두사·커서·경로 표기·
