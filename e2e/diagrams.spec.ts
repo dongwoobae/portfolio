@@ -290,6 +290,36 @@ test.describe("스크린샷 라이트박스", () => {
   });
 
   /**
+   * 모바일 프레임도 축소돼 보인다(232px 프레임 대 390px 논리 해상도 = 59%).
+   * 데스크톱 스크린샷과 같은 확대 경로를 가져야 하고, 화면에 마지막으로
+   * 그려지므로 라이트박스에서도 마지막 장이어야 한다 — 순서가 어긋나면
+   * 모바일을 눌렀는데 엉뚱한 데스크톱 화면이 열린다.
+   */
+  test("모바일 화면도 눌러서 크게 볼 수 있고 마지막 장이다", async ({
+    page,
+  }) => {
+    await page.goto("/projects/ycc-website");
+
+    const shots = page
+      .locator('button[aria-label^="크게 보기:"]')
+      .filter({ has: page.locator("img") });
+    const total = await shots.count();
+
+    const mobile = shots.last();
+    await expect(mobile.getByRole("img", { name: /모바일/ })).toBeVisible();
+    await mobile.click();
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText(`[${total}/${total}]`)).toBeVisible();
+    await expect(dialog.getByRole("img", { name: /모바일/ })).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(mobile).toBeFocused();
+  });
+
+  /**
    * 장을 넘기면 확대가 풀려야 한다 — 다음 장을 확대 상태로 맞이하면 어디를
    * 보는지 잃는다. 되돌아오기(←)와 닫았다 다시 열기까지 함께 본다. 앞으로
    * 넘기는 것만 검사하면 확대 상태를 장 번호에 묶어 둔 구현이 통과해 버린다.

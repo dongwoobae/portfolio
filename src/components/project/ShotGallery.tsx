@@ -30,16 +30,23 @@ export function ShotGallery({
   rows: Shot[][];
   mobile?: MobileShot;
 }) {
-  // 줄 구분 없이 평탄화한 순서가 라이트박스의 탐색 순서다. 모바일 프레임은
-  // 이미 실제 크기로 보이므로 넣지 않는다.
-  const items: LightboxItem[] = rows.flat().map((shot) => ({
+  // 줄 구분 없이 평탄화한 순서가 라이트박스의 탐색 순서다. 화면에 그려지는
+  // 순서와 같아야 하므로 모바일 프레임이 맨 뒤에 붙는다.
+  //
+  // 한때 "모바일은 이미 실제 크기로 보이므로 넣지 않는다"고 두었으나 사실이
+  // 아니었다 — 프레임 폭은 232px인데 촬영 논리 해상도는 390px이라 59%로 줄어
+  // 있고, 세로로 긴 화면(영천중앙교회)은 47%까지 내려간다. 데스크톱 스크린샷과
+  // 똑같이 축소돼 있으니 확대 경로도 똑같이 있어야 한다.
+  const toItem = (shot: { src: string; alt: string }): LightboxItem => ({
     kind: "image",
     // 그리드는 next/image가 리사이즈한 것을 쓰지만 라이트박스 1:1은 원본이어야
     // 관리자 화면 글자가 읽힌다.
     src: getScreenshot(shot.src).src,
     path: shot.src,
     alt: shot.alt,
-  }));
+  });
+  const items: LightboxItem[] = rows.flat().map(toItem);
+  if (mobile) items.push(toItem(mobile));
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   /**
@@ -73,7 +80,13 @@ export function ShotGallery({
           </div>
         );
       })}
-      {mobile && <MobileFrame shot={mobile} />}
+      {mobile && (
+        // 모바일은 항상 평탄 목록의 마지막 장이다.
+        <MobileFrame
+          shot={mobile}
+          onOpen={() => setOpenIndex(items.length - 1)}
+        />
+      )}
       <Lightbox
         items={items}
         index={openIndex}
@@ -147,17 +160,30 @@ const FRAME_WIDTH = 232;
 // 화면을 길게 찍은 프로젝트(설교 목록 등)는 프레임이 너무 커지지 않게 폭을 줄인다.
 const FRAME_MAX_HEIGHT = 560;
 
-/** 실제 휴대폰 폭(390px)으로 찍은 스크린샷을 기기 프레임에 넣어 보여준다. */
-function MobileFrame({ shot }: { shot: MobileShot }) {
+/**
+ * 실제 휴대폰 폭(390px)으로 찍은 스크린샷을 기기 프레임에 넣어 보여준다.
+ * 프레임은 232px까지만 커지므로 화면은 논리 크기의 절반 남짓으로 축소된다 —
+ * 그래서 데스크톱 스크린샷과 같이 눌러서 크게 볼 수 있어야 한다.
+ */
+function MobileFrame({
+  shot,
+  onOpen,
+}: {
+  shot: MobileShot;
+  onOpen: () => void;
+}) {
   const image = getScreenshot(shot.src);
   const ratio = image.width / image.height;
   const width = Math.round(Math.min(FRAME_WIDTH, FRAME_MAX_HEIGHT * ratio));
 
   return (
     <div className="mt-7 grid items-center gap-6 border-t border-line pt-8 md:grid-cols-[auto_1fr] md:gap-9">
-      <div
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`크게 보기: ${shot.alt}`}
         style={{ width }}
-        className="mx-auto rounded-[30px] border-[7px] border-line-accent bg-card shadow-[0_18px_44px_rgba(0,0,0,.5)] md:mx-0"
+        className="group relative mx-auto block cursor-pointer rounded-[30px] border-[7px] border-line-accent bg-card shadow-[0_18px_44px_rgba(0,0,0,.5)] md:mx-0"
       >
         <Image
           src={image}
@@ -166,7 +192,14 @@ function MobileFrame({ shot }: { shot: MobileShot }) {
           placeholder="blur"
           className="h-auto w-full rounded-[23px]"
         />
-      </div>
+        {/* 데스크톱 창틀과 같은 신호 — 축소돼 있으니 누르면 커진다는 뜻이다. */}
+        <span
+          aria-hidden="true"
+          className="absolute top-2 right-2 rounded border border-line bg-rail/90 px-1.5 py-0.5 font-mono text-[11px] text-muted opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+        >
+          ⤢
+        </span>
+      </button>
       <div className="flex flex-col gap-2.5">
         <span className="font-mono text-[11px] text-accent">
           $ open --device mobile
