@@ -71,33 +71,53 @@ test("프로젝트 상세 5장이 모두 뜨고 스크린샷이 로드된다", a
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByText(`projects/${slug}`)).toBeVisible();
 
-    // 경로가 틀리거나 최적화가 실패하면 자연 크기가 0으로 남는다.
+    // 바이트가 실제로 도착하는지는 페이지마다 대표 한 장으로만 확인한다.
     const hero = page.getByRole("img").first();
     await expect(hero).toBeVisible();
+    await expectLoaded(hero, `${slug} 대표 스크린샷`);
     await expectUncropped(hero, `${slug} 대표 스크린샷`);
   }
 });
 
 /**
- * 고정 높이 + object-cover로 그리면 와이드 스크린샷의 좌우가 잘려 나간다.
- * 그려진 비율이 원본 비율과 같은지로 잘림을 잡는다.
- * (원본 PNG가 커서 dev 서버의 이미지 최적화가 느리다 — 넉넉히 기다린다.)
+ * 경로가 틀리거나 최적화가 실패하면 자연 크기가 0으로 남는다.
+ * 실제로 바이트가 도착했는지는 이 함수만 본다 — 대표 스크린샷에만 쓴다.
  */
-async function expectUncropped(shot: Locator, label: string) {
+async function expectLoaded(shot: Locator, label: string) {
   await expect
     .poll(() => shot.evaluate((img: HTMLImageElement) => img.naturalWidth), {
       message: `${label} 로드`,
       timeout: 60_000,
     })
     .toBeGreaterThan(0);
+}
 
+/**
+ * 고정 높이 + object-cover로 그리면 와이드 스크린샷의 좌우가 잘려 나간다.
+ * 그려진 비율이 원본 비율과 같은지로 잘림을 잡는다.
+ *
+ * 원본 비율은 `naturalWidth`가 아니라 **width/height 속성**에서 읽는다.
+ * next/image가 정적 임포트의 원본 치수를 그대로 심어 두므로 이미지 바이트가
+ * 한 장도 도착하지 않아도 값이 있다. 실제로 /_next/image 응답을 전부 막고
+ * 재 봐도 그려진 비율과 최대 0.004 차이로 일치한다.
+ *
+ * 이 구분이 중요하다 — 예전에는 잘림 판정이 로드 완료를 기다렸고, 그래서
+ * dev 서버 이미지 최적화가 밀리면 레이아웃과 무관한 이유로 깨졌다. CI에서
+ * 재시도 2회까지 전부 실패한 것이 이 경우이고, 한 번 실패에 192초를 썼다.
+ */
+async function expectUncropped(shot: Locator, label: string) {
   const ratios = await shot.evaluate((img: HTMLImageElement) => ({
     drawn: img.clientWidth / img.clientHeight,
-    natural: img.naturalWidth / img.naturalHeight,
+    source:
+      Number(img.getAttribute("width")) / Number(img.getAttribute("height")),
   }));
   expect(
-    Math.abs(ratios.drawn - ratios.natural),
-    `${label}이 잘렸다 (그려진 ${ratios.drawn.toFixed(3)} vs 원본 ${ratios.natural.toFixed(3)})`,
+    Number.isFinite(ratios.source) && ratios.source > 0,
+    `${label}에 원본 치수 속성이 없다 — next/image가 정적 임포트를 못 받았다`,
+  ).toBe(true);
+  expect(
+    Math.abs(ratios.drawn - ratios.source),
+    `${label}이 잘렸다 (그려진 ${ratios.drawn.toFixed(3)} vs 원본 ${ratios.source.toFixed(3)})`,
   ).toBeLessThan(0.02);
 }
 
@@ -105,20 +125,16 @@ async function expectUncropped(shot: Locator, label: string) {
 // 스크린샷이 제일 많고 1장·3장 줄이 섞인 modu-campus를 대표로 훑는다.
 // (나머지 4장은 위 테스트가 대표 스크린샷 한 장씩 확인한다.)
 test("상세 스크린샷이 줄 구성과 무관하게 잘리지 않는다", async ({ page }) => {
-  test.setTimeout(180_000);
   await page.goto("/projects/modu-campus");
 
   const shots = page.locator("figure img");
   await expect(shots.first()).toBeVisible();
 
-  // 지연 로드분까지 한 번에 요청이 나가게 끝까지 내린다.
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await page
-    .waitForLoadState("networkidle", { timeout: 10_000 })
-    .catch(() => {});
-
   const count = await shots.count();
   expect(count, "데스크톱 4장 + 모바일 1장").toBe(5);
+
+  // 이미지 바이트를 기다리지 않는다 — 레이아웃만 보는 테스트다.
+  // 실제 로드 여부는 위 "프로젝트 상세 5장이 …" 테스트가 대표 한 장씩 확인한다.
   for (let index = 0; index < count; index += 1) {
     await expectUncropped(shots.nth(index), `modu-campus 스크린샷 ${index}`);
   }
