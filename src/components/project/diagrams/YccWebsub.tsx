@@ -30,8 +30,12 @@ const NODES: DiagramNode[] = [
     x: 250,
     y: 30,
     w: 210,
-    h: 58,
-    title: "PubSubHubbub 허브",
+    // 브랜드 캡션 한 줄만큼 기본 높이(58)보다 크다.
+    h: 73,
+    // 옆으로 긴 마크라 제목이 그만큼 밀린다 — 제목은 짧게 두고 이름은 캡션이 진다.
+    brand: "pubsubhubbub",
+    brandCaption: true,
+    title: "허브",
     notes: ["pubsubhubbub.appspot.com"],
   },
   {

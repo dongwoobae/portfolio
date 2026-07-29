@@ -2500,8 +2500,17 @@ E2E로 고정했다.
 `scripts/gen-diagram-logos.mjs`가 simple-icons 16.27.1에서 받아 굽는다 —
 **로고 경로를 손으로 그리지 않는다.** 근사치는 진짜 마크 옆에서 바로 티가 난다.
 
-공식 마크가 없는 PubSubHubbub·face-api.js는 **달지 않고 비워 뒀다.**
-직접 받은 마크가 생기면 `logos.ts`의 `MANUAL_LOGOS`에 넣으면 된다.
+simple-icons에 없는 둘은 원본 이미지를 받아 `logos.ts`의 `MANUAL_LOGOS`에 넣었다.
+**색과 치수는 눈으로 짐작하지 않고 원본 PNG 픽셀에서 뽑았다** — PubSubHubbub은
+도형 25px·간격 5px·전체 85×25였고, 세로 24 기준 82×24로 환산했다.
+
+TensorFlow.js는 경로만 simple-icons의 공식 TF 글리프를 쓰고 색은 TF.js 원본의
+`#FF8500`을 썼다. **JS 배지는 뺐다** — 배지 남색 `#425066`이 카드 배경 대비
+2.22:1로 기준(3:1) 미달이라, 어두운 배경에서 배지가 글리프를 베어 문 자국처럼
+보인다. 여기서도 색은 재 보고 결정했다.
+
+마크가 정사각이라는 보장이 깨져 `LogoMark`에 `aspect`와 다색 `shapes`를 넣었다.
+PubSubHubbub은 aspect 3.42라 16px 높이에서 55px를 차지한다.
 
 ### 새로 고정한 회귀 (E2E 30 → 40)
 

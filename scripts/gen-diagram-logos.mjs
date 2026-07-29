@@ -78,7 +78,7 @@ async function main() {
 export type GeneratedLogoId =
 ${ids};
 
-export type LogoMark = {
+export type GeneratedMark = {
   /** 브랜드 정식 표기 — 캡션과 접근성 텍스트에 그대로 쓴다 */
   title: string;
   /** 공식 브랜드 색. 전부 card(#12161c) 대비 3:1을 넘겨 확인했다 */
@@ -87,7 +87,7 @@ export type LogoMark = {
   path: string;
 };
 
-export const GENERATED_LOGOS: Record<GeneratedLogoId, LogoMark> = {
+export const GENERATED_LOGOS: Record<GeneratedLogoId, GeneratedMark> = {
 ${body}
 };
 `,

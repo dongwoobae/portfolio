@@ -214,14 +214,16 @@ test.describe("아키텍처 다이어그램", () => {
     const marks = await page.evaluate(() =>
       [...document.querySelectorAll('svg[role="img"] g[transform] > path')].map(
         (p) => ({
-          d: (p.getAttribute("d") ?? "").length,
+          d: p.getAttribute("d") ?? "",
           fill: p.getAttribute("fill") ?? "",
         }),
       ),
     );
     expect(marks.length, "브랜드 마크가 하나도 없다").toBeGreaterThan(0);
     for (const m of marks) {
-      expect(m.d, "마크 경로가 비었다").toBeGreaterThan(20);
+      // 길이로 재지 않는다 — PubSubHubbub의 정사각형은 "M0 0h24v24H0z" 13자다.
+      // 경로 명령으로 시작하는 비어 있지 않은 문자열인지만 본다.
+      expect(m.d, "마크 경로가 비었다").toMatch(/^M\s*-?[\d.]/);
       expect(m.fill, `마크 색이 hex가 아니다: ${m.fill}`).toMatch(
         /^#[0-9A-F]{6}$/i,
       );

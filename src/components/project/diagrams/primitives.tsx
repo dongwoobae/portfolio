@@ -164,14 +164,19 @@ export function Node({ node }: { node: DiagramNode }) {
         // 마크는 장식이 아니라 정보지만, svg 전체가 role="img"라 내부 요소는
         // 보조기술에 노출되지 않는다. 마크만 이름을 지는 노드(YouTube처럼 제목에
         // 브랜드명이 없는 경우)는 <desc>가 그 이름을 반드시 말해야 한다.
+        //
+        // 마크 좌표계는 세로 24로 정규화돼 있다. 가로는 aspect가 정하므로
+        // PubSubHubbub처럼 옆으로 긴 마크도 같은 변환으로 그려진다.
         <g
           transform={`translate(${x + PAD} ${y + TITLE_DY - 13}) scale(${MARK / 24})`}
         >
-          <path d={mark.path} fill={mark.hex} />
+          {mark.shapes.map((shape, i) => (
+            <path key={i} d={shape.d} fill={shape.fill} />
+          ))}
         </g>
       )}
       <text
-        x={x + PAD + (mark ? MARK + MARK_GAP : 0)}
+        x={x + PAD + (mark ? MARK * mark.aspect + MARK_GAP : 0)}
         y={y + TITLE_DY}
         fontSize={13}
         fill={accent ? "var(--color-accent)" : "var(--color-ink)"}

@@ -41,7 +41,11 @@ const NODES: DiagramNode[] = [
     x: 290,
     y: 176,
     w: 250,
-    h: 76,
+    h: 91,
+    // face-api.js는 TensorFlow.js 위에서 돈다. 제목의 이름과 마크의 브랜드가
+    // 다르므로 캡션을 켠다 — 레인 라벨의 "TF.js 단일 스레드"가 왜 순차인지의 근거다.
+    brand: "tensorflowjs",
+    brandCaption: true,
     title: "face-api.js",
     notes: ["tinyFaceDetector 0.45", "naturalWidth 스케일 보정"],
     accent: true,
@@ -58,7 +62,7 @@ const NODES: DiagramNode[] = [
   {
     id: "guard",
     x: 40,
-    y: 326,
+    y: 340,
     w: 226,
     h: 88,
     title: "요청 검증",
@@ -71,7 +75,7 @@ const NODES: DiagramNode[] = [
   {
     id: "sharp",
     x: 306,
-    y: 326,
+    y: 340,
     w: 208,
     h: 88,
     // 제목이 이미 이름을 들고 있으니 캡션은 켜지 않는다.
@@ -82,7 +86,7 @@ const NODES: DiagramNode[] = [
   {
     id: "blur",
     x: 580,
-    y: 326,
+    y: 340,
     w: 236,
     h: 88,
     title: "영역 블러 합성",
@@ -92,7 +96,7 @@ const NODES: DiagramNode[] = [
   {
     id: "r2",
     x: 306,
-    y: 494,
+    y: 508,
     w: 246,
     h: 91,
     brand: "cloudflare",
@@ -104,7 +108,7 @@ const NODES: DiagramNode[] = [
   {
     id: "meta",
     x: 600,
-    y: 494,
+    y: 508,
     w: 216,
     h: 91,
     brand: "supabase",
@@ -137,11 +141,11 @@ export function SumgimBlur({
         x={20}
         y={18}
         w={800}
-        h={252}
+        h={265}
         label="브라우저 — Phase 1 순차 (TF.js 단일 스레드) → Phase 2 병렬 (Promise.all)"
       />
-      <Lane x={20} y={296} w={800} h={138} label="서버 — API Route" />
-      <Lane x={286} y={464} w={534} h={141} label="저장소" />
+      <Lane x={20} y={310} w={800} h={138} label="서버 — API Route" />
+      <Lane x={286} y={478} w={534} h={141} label="저장소" />
 
       <Arrow nodes={N} from="pick" to="compress" accent />
       <Arrow nodes={N} from="compress" to="detect" label="압축본" accent />
