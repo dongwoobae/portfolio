@@ -24,7 +24,7 @@ export const DIAGRAM_META: Record<DiagramId, DiagramMeta> = {
   },
   "ycc-qstash": {
     title: "AI 요약 파이프라인 — QStash 단계 체이닝과 두 갈래 재시도",
-    desc: "ingest-video, fetch-transcript, summarize 세 잡을 QStash 메시지로 이어 붙여 서버리스 실행 시간 제한을 피한다. 모든 잡 입구에서 QStash 서명을 검증한다. 영상 정보나 자막이 준비되지 않으면 QStash 지연 발행으로 30분 뒤 재투입하며 최대 12회 반복한다. 요약 실패는 다음 재시도 시각을 5 곱하기 3의 n제곱 분으로 DB에 적어 두고 매시간 스위퍼가 회수한다. 요약은 CTE 원자적 선점으로 중복 실행을 막는다.",
+    desc: "ingest-video, fetch-transcript, summarize 세 잡을 QStash 메시지로 이어 붙여 서버리스 실행 시간 제한을 피한다. 모든 잡 입구에서 QStash 서명을 검증한다. 영상 정보나 자막이 준비되지 않으면 QStash 지연 발행으로 30분 뒤 재투입하며 최대 12회 반복한다. 요약 실패는 다음 재시도 시각을 5 곱하기 3의 n 빼기 1 제곱 분으로 DB에 적어 두고 매시간 스위퍼가 최대 3회까지 회수한다. 요약은 CTE 원자적 선점으로 중복 실행을 막는다.",
     width: 940,
     height: 520,
   },

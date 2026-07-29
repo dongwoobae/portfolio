@@ -71,9 +71,10 @@ const NODES: DiagramNode[] = [
     x: 620,
     y: 286,
     w: 230,
-    h: 72,
+    // 보조 문구가 세 줄이라 다른 노드(두 줄, h=72)보다 한 줄만큼 높다.
+    h: 86,
     title: "summary_next_retry_at",
-    notes: ["5 × 3ⁿ⁻¹ 분", "DB에 다음 시각 기록"],
+    notes: ["5 × 3ⁿ⁻¹ 분", "DB에 다음 시각 기록", "최대 3회"],
   },
   {
     id: "db",

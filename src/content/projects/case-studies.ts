@@ -308,7 +308,7 @@ export const caseStudies: Record<string, CaseStudy> = {
           {
             title: "동시성 제어 + 서버리스식 재시도",
             description:
-              "Postgres CTE UPDATE...RETURNING으로 설교 1건을 원자적 선점해 중복 요약 차단. sleep이 불가능하므로 재시도를 두 갈래로 나눴다 — 영상·자막 미준비는 QStash 지연 발행으로 30분 뒤 재투입(최대 12회), 요약 실패는 다음 시각(5·3ⁿ분)을 DB에 적어 두고 매시간 스위퍼가 회수한다. Gemini responseSchema로 요점·타임스탬프 챕터를 JSON 스키마로 강제.",
+              "Postgres CTE UPDATE...RETURNING으로 설교 1건을 원자적 선점해 중복 요약 차단. sleep이 불가능하므로 재시도를 두 갈래로 나눴다 — 영상·자막 미준비는 QStash 지연 발행으로 30분 뒤 재투입(최대 12회), 요약 실패는 다음 시각(5·3ⁿ⁻¹분)을 DB에 적어 두고 매시간 스위퍼가 최대 3회까지 회수한다. Gemini responseSchema로 요점·타임스탬프 챕터를 JSON 스키마로 강제.",
           },
         ],
       },

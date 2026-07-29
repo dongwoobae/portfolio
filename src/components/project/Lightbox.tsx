@@ -43,14 +43,13 @@ export function Lightbox({
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  // 확대는 "몇 번째 장에 대한 확대인지"와 함께 들고 있는다. 장을 넘기면 저절로
-  // 무효가 되므로 effect에서 false로 되돌릴 필요가 없다 — effect 안의 setState는
-  // 리렌더를 연쇄시키고 react-hooks/set-state-in-effect에도 걸린다.
-  const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
+  // 확대는 이 라이트박스를 여는 동안만 유지된다. 장을 넘길 때와 닫을 때
+  // 이벤트 핸들러에서 직접 되돌린다 — effect 안의 setState는 리렌더를
+  // 연쇄시키고 react-hooks/set-state-in-effect에도 걸린다.
+  const [actualSize, setActualSize] = useState(false);
 
   const open = index !== null;
   const item = open ? items[index] : undefined;
-  const actualSize = open && zoomedIndex === index;
 
   // showModal()/close()는 명령형 API라 open 상태와 직접 동기화한다.
   useEffect(() => {
@@ -68,10 +67,18 @@ export function Lightbox({
   const move = useCallback(
     (delta: number) => {
       if (index === null || items.length < 2) return;
+      // 다음 장을 확대 상태로 맞이하면 어디를 보고 있는지 잃는다.
+      setActualSize(false);
       onIndexChange((index + delta + items.length) % items.length);
     },
     [index, items.length, onIndexChange],
   );
+
+  // 닫을 때도 푼다 — 같은 장을 다시 열었을 때 확대로 시작하면 안 된다.
+  const handleClose = useCallback(() => {
+    setActualSize(false);
+    onClose();
+  }, [onClose]);
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLDialogElement>) => {
     if (event.key === "ArrowRight") {
@@ -95,7 +102,7 @@ export function Lightbox({
   return (
     <dialog
       ref={dialogRef}
-      onClose={onClose}
+      onClose={handleClose}
       onKeyDown={onKeyDown}
       aria-label={itemLabel(item)}
       // backdrop 색은 globals.css가 정한다 — 여기서 backdrop: 유틸리티를 쓰면 덮어써진다.
@@ -116,7 +123,7 @@ export function Lightbox({
           {canZoom && (
             <button
               type="button"
-              onClick={() => setZoomedIndex(actualSize ? null : index)}
+              onClick={() => setActualSize((v) => !v)}
               aria-pressed={actualSize}
               className={`shrink-0 cursor-pointer rounded border px-2 py-1 ${
                 actualSize

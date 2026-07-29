@@ -97,14 +97,18 @@ test.describe("스크린샷 라이트박스", () => {
     await expect(first).toBeFocused();
   });
 
-  /** 장을 넘기면 확대가 풀려야 한다 — 다음 장을 확대 상태로 맞이하면 혼란스럽다. */
-  test("장을 넘기면 1:1이 풀린다", async ({ page }) => {
+  /**
+   * 장을 넘기면 확대가 풀려야 한다 — 다음 장을 확대 상태로 맞이하면 어디를
+   * 보는지 잃는다. 되돌아오기(←)와 닫았다 다시 열기까지 함께 본다. 앞으로
+   * 넘기는 것만 검사하면 확대 상태를 장 번호에 묶어 둔 구현이 통과해 버린다.
+   */
+  test("장을 넘기거나 닫았다 열면 1:1이 풀린다", async ({ page }) => {
     await page.goto("/projects/ycc-website");
-    await page
+    const thumb = page
       .locator('button[aria-label^="크게 보기:"]')
       .filter({ has: page.locator("img") })
-      .first()
-      .click();
+      .first();
+    await thumb.click();
 
     const dialog = page.getByRole("dialog");
     const zoom = dialog.getByRole("button", { name: "1:1" });
@@ -113,6 +117,21 @@ test.describe("스크린샷 라이트박스", () => {
 
     await page.keyboard.press("ArrowRight");
     await expect(zoom).toHaveAttribute("aria-pressed", "false");
+
+    // 확대했던 장으로 되돌아와도 풀린 채여야 한다.
+    await page.keyboard.press("ArrowLeft");
+    await expect(zoom).toHaveAttribute("aria-pressed", "false");
+
+    await zoom.click();
+    await expect(zoom).toHaveAttribute("aria-pressed", "true");
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+
+    // 같은 장을 다시 열어도 fit으로 시작해야 한다.
+    await thumb.click();
+    await expect(
+      page.getByRole("dialog").getByRole("button", { name: "1:1" }),
+    ).toHaveAttribute("aria-pressed", "false");
   });
 });
 
