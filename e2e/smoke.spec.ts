@@ -121,22 +121,30 @@ async function expectUncropped(shot: Locator, label: string) {
   ).toBeLessThan(0.02);
 }
 
-// 잘림은 CaseStudyShots의 레이아웃 문제라 한 페이지를 전수로 보면 잡힌다.
-// 스크린샷이 제일 많고 1장·3장 줄이 섞인 modu-campus를 대표로 훑는다.
-// (나머지 4장은 위 테스트가 대표 스크린샷 한 장씩 확인한다.)
+// 잘림은 CaseStudyShots의 레이아웃 문제라 줄 구성별로 한 장씩만 보면 잡힌다.
+// ROW에 있는 1·2·3장 줄을 전부 지나가도록 두 페이지를 훑는다 —
+// modu-campus가 2장·3장·1장, worldengco가 2장·3장이다.
+// (나머지 3장은 위 테스트가 대표 스크린샷 한 장씩 확인한다.)
+const UNCROPPED_PAGES = [
+  { slug: "modu-campus", shots: 7 }, // 데스크톱 6 + 모바일 1
+  { slug: "worldengco", shots: 6 }, // 데스크톱 5 + 모바일 1
+];
+
 test("상세 스크린샷이 줄 구성과 무관하게 잘리지 않는다", async ({ page }) => {
-  await page.goto("/projects/modu-campus");
+  for (const { slug, shots: expected } of UNCROPPED_PAGES) {
+    await page.goto(`/projects/${slug}`);
 
-  const shots = page.locator("figure img");
-  await expect(shots.first()).toBeVisible();
+    const shots = page.locator("figure img");
+    await expect(shots.first()).toBeVisible();
 
-  const count = await shots.count();
-  expect(count, "데스크톱 4장 + 모바일 1장").toBe(5);
+    const count = await shots.count();
+    expect(count, `${slug}의 스크린샷 장수`).toBe(expected);
 
-  // 이미지 바이트를 기다리지 않는다 — 레이아웃만 보는 테스트다.
-  // 실제 로드 여부는 위 "프로젝트 상세 5장이 …" 테스트가 대표 한 장씩 확인한다.
-  for (let index = 0; index < count; index += 1) {
-    await expectUncropped(shots.nth(index), `modu-campus 스크린샷 ${index}`);
+    // 이미지 바이트를 기다리지 않는다 — 레이아웃만 보는 테스트다.
+    // 실제 로드 여부는 위 "프로젝트 상세 5장이 …" 테스트가 대표 한 장씩 확인한다.
+    for (let index = 0; index < count; index += 1) {
+      await expectUncropped(shots.nth(index), `${slug} 스크린샷 ${index}`);
+    }
   }
 });
 

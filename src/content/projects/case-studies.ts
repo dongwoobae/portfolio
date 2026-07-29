@@ -74,6 +74,11 @@ export const caseStudies: Record<string, CaseStudy> = {
           label: "배리어프리 지도 — 한 / EN / 中文",
           alt: "배리어프리 지도 화면 — 캠퍼스 건물과 접근성 시설이 표시된 지도",
         },
+        {
+          src: "/screenshots/modu-slope.png",
+          label: "경사도 오버레이 — 법적 기준 1/12(8.33%) 표시",
+          alt: "경사도 오버레이를 켠 배리어프리 지도 — 보행로 경사가 구간별 색으로 구분되고 범례에 법적 기준선이 함께 표시된 화면",
+        },
       ],
       [
         {
@@ -85,6 +90,11 @@ export const caseStudies: Record<string, CaseStudy> = {
           src: "/screenshots/modu-facility-add.png",
           label: "관리자 — 시설 추가",
           alt: "관리자 콘솔의 접근성 시설 추가 화면",
+        },
+        {
+          src: "/screenshots/modu-polygon-draw.png",
+          label: "관리자 — 건물 폴리곤 직접 드로잉",
+          alt: "관리자 콘솔의 건물 폴리곤 드로잉 화면 — 지도 위에 꼭짓점을 찍어 건물 외곽선을 그리는 중이고 Finish · Remove Last Vertex · Cancel 도구가 떠 있는 상태",
         },
       ],
       [
@@ -181,6 +191,13 @@ export const caseStudies: Record<string, CaseStudy> = {
           alt: "얼굴 자동 블러가 적용된 사진 관리 화면",
         },
       ],
+      [
+        {
+          src: "/screenshots/sumgim-calculator.png",
+          label: "본인부담금 계산기 — 등급 · 이용 시간 · 월 횟수",
+          alt: "본인부담금 계산기 화면 — 장기요양 등급과 1회 이용 시간, 월 이용 횟수를 넣어 월 예상 본인부담금이 산출된 결과",
+        },
+      ],
     ],
     mobileShot: {
       src: "/screenshots/mobile/ankang-sumgim-mobile.png",
@@ -265,6 +282,11 @@ export const caseStudies: Record<string, CaseStudy> = {
         },
       ],
       [
+        {
+          src: "/screenshots/ycc-sermon-detail.png",
+          label: "설교 상세 — AI 요약 · 글자 크기 조절",
+          alt: "공개 설교 상세 화면 — 설교 영상과 AI가 생성한 빠른 요약, 글자 크기를 키우고 줄이는 버튼",
+        },
         {
           src: "/screenshots/ycc-admin-sermons.png",
           label: "관리자 CMS — 설교 관리 · YouTube 동기화 · AI 요약",
@@ -361,6 +383,11 @@ export const caseStudies: Record<string, CaseStudy> = {
           src: "/screenshots/worldeng-home.png",
           label: "공개 홈페이지",
           alt: "월드ENC.CO 공개 홈페이지",
+        },
+        {
+          src: "/screenshots/worldeng-reserve.png",
+          label: "A/S·교육 예약 — 가용 날짜 판정",
+          alt: "공개 예약 요청 화면 — 예약 유형 선택과 희망 날짜 달력, 예약할 수 없는 날짜는 비활성으로 표시된 상태",
         },
       ],
       [
@@ -476,6 +503,11 @@ export const caseStudies: Record<string, CaseStudy> = {
           src: "/screenshots/hmsu-home.png",
           label: "공개 메인 화면",
           alt: "한약안전사용 플랫폼 메인 화면",
+        },
+        {
+          src: "/screenshots/hmsu-search.png",
+          label: "첩약 검색 — 기준처방코드로 정리된 목록",
+          alt: "첩약 검색 화면 — 기준처방분류코드와 기준처방코드, 첩약대상질환코드가 붙은 처방 목록",
         },
       ],
     ],

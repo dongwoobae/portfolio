@@ -13,6 +13,7 @@
     "test": "vitest run",
     "e2e": "playwright test",
     "shots:mobile": "node scripts/capture-mobile.mjs",
+    "shots:desktop": "node scripts/capture-desktop.mjs",
     "e2e:ui": "playwright test --ui",
     "build:worker": "next build --webpack && opennextjs-cloudflare build --skipNextBuild",
     "preview": "npm run build:worker && opennextjs-cloudflare preview",

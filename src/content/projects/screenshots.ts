@@ -1,5 +1,6 @@
 import type { StaticImageData } from "next/image";
 import hmsuHome from "../../../public/screenshots/hmsu-home.png";
+import hmsuSearch from "../../../public/screenshots/hmsu-search.png";
 import ankangSumgimMobile from "../../../public/screenshots/mobile/ankang-sumgim-mobile.png";
 import hmsuMobile from "../../../public/screenshots/mobile/hmsu-mobile.png";
 import moduCampusMobile from "../../../public/screenshots/mobile/modu-campus-mobile.png";
@@ -9,15 +10,20 @@ import moduAdminBuildings from "../../../public/screenshots/modu-admin-buildings
 import moduBuildingDetail from "../../../public/screenshots/modu-building-detail.png";
 import moduFacilityAdd from "../../../public/screenshots/modu-facility-add.png";
 import moduMap from "../../../public/screenshots/modu-map.png";
+import moduPolygonDraw from "../../../public/screenshots/modu-polygon-draw.png";
+import moduSlope from "../../../public/screenshots/modu-slope.png";
 import sumgimAdminDashboard from "../../../public/screenshots/sumgim-admin-dashboard.png";
 import sumgimBlurGallery from "../../../public/screenshots/sumgim-blur-gallery.png";
+import sumgimCalculator from "../../../public/screenshots/sumgim-calculator.png";
 import sumgimHome from "../../../public/screenshots/sumgim-home.png";
 import worldengAdminBoard from "../../../public/screenshots/worldeng-admin-board.png";
 import worldengAdminBooking from "../../../public/screenshots/worldeng-admin-booking.png";
 import worldengAdminStaff from "../../../public/screenshots/worldeng-admin-staff.png";
 import worldengHome from "../../../public/screenshots/worldeng-home.png";
+import worldengReserve from "../../../public/screenshots/worldeng-reserve.png";
 import yccAdminSermons from "../../../public/screenshots/ycc-admin-sermons.png";
 import yccHome from "../../../public/screenshots/ycc-home.png";
+import yccSermonDetail from "../../../public/screenshots/ycc-sermon-detail.png";
 
 /**
  * 스크린샷을 정적 임포트해 두는 곳. 콘텐츠 파일은 `/screenshots/*.png` 문자열만
@@ -29,19 +35,25 @@ import yccHome from "../../../public/screenshots/ycc-home.png";
  */
 export const screenshots = {
   "/screenshots/hmsu-home.png": hmsuHome,
+  "/screenshots/hmsu-search.png": hmsuSearch,
   "/screenshots/modu-admin-buildings.png": moduAdminBuildings,
   "/screenshots/modu-building-detail.png": moduBuildingDetail,
   "/screenshots/modu-facility-add.png": moduFacilityAdd,
   "/screenshots/modu-map.png": moduMap,
+  "/screenshots/modu-polygon-draw.png": moduPolygonDraw,
+  "/screenshots/modu-slope.png": moduSlope,
   "/screenshots/sumgim-admin-dashboard.png": sumgimAdminDashboard,
   "/screenshots/sumgim-blur-gallery.png": sumgimBlurGallery,
+  "/screenshots/sumgim-calculator.png": sumgimCalculator,
   "/screenshots/sumgim-home.png": sumgimHome,
   "/screenshots/worldeng-admin-board.png": worldengAdminBoard,
   "/screenshots/worldeng-admin-booking.png": worldengAdminBooking,
   "/screenshots/worldeng-admin-staff.png": worldengAdminStaff,
   "/screenshots/worldeng-home.png": worldengHome,
+  "/screenshots/worldeng-reserve.png": worldengReserve,
   "/screenshots/ycc-admin-sermons.png": yccAdminSermons,
   "/screenshots/ycc-home.png": yccHome,
+  "/screenshots/ycc-sermon-detail.png": yccSermonDetail,
   "/screenshots/mobile/ankang-sumgim-mobile.png": ankangSumgimMobile,
   "/screenshots/mobile/hmsu-mobile.png": hmsuMobile,
   "/screenshots/mobile/modu-campus-mobile.png": moduCampusMobile,
