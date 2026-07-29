@@ -1,3 +1,4 @@
+import { CaseStudyDiagram } from "@/components/project/CaseStudyDiagram";
 import type { CaseStudySection } from "@/content/projects/case-studies";
 
 export function CaseStudyBody({
@@ -27,25 +28,29 @@ export function CaseStudyBody({
               )}
             </p>
           ) : (
-            <div
-              className={`grid gap-3.5 ${section.columns === 2 ? "md:grid-cols-2" : ""}`}
-            >
-              {section.cards.map((card) => (
-                <div
-                  key={card.title}
-                  className={`rounded-md border p-[22px_26px] ${
-                    card.accent
-                      ? "border-line-accent bg-linear-to-b from-card-hi to-card"
-                      : "border-line bg-card"
-                  }`}
-                >
-                  <strong className="text-[15px]">{card.title}</strong>
-                  <p className="mt-2 text-[13px] leading-[1.8] text-muted">
-                    {card.description}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <>
+              {/* 그림이 전체 흐름을 먼저 보여주고 카드가 각 단계를 상술한다. */}
+              {section.diagram && <CaseStudyDiagram id={section.diagram} />}
+              <div
+                className={`grid gap-3.5 ${section.columns === 2 ? "md:grid-cols-2" : ""}`}
+              >
+                {section.cards.map((card) => (
+                  <div
+                    key={card.title}
+                    className={`rounded-md border p-[22px_26px] ${
+                      card.accent
+                        ? "border-line-accent bg-linear-to-b from-card-hi to-card"
+                        : "border-line bg-card"
+                    }`}
+                  >
+                    <strong className="text-[15px]">{card.title}</strong>
+                    <p className="mt-2 text-[13px] leading-[1.8] text-muted">
+                      {card.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </section>
       ))}

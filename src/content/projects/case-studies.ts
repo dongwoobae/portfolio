@@ -1,6 +1,8 @@
 // 프로젝트 상세 페이지 본문. 디자인 핸드오프(design/Project *.dc.html)의 문안을
 // 그대로 옮겼다. 문구를 고칠 때는 핸드오프가 아니라 이 파일이 기준이다.
 
+import type { DiagramId } from "@/content/projects/diagrams";
+
 /** 문장 중간 강조는 세그먼트로 나눠 둔다 ({ em }이 본문색으로 뜬다). */
 export type ProseSegment = string | { em: string };
 
@@ -26,7 +28,7 @@ export type Card = { title: string; description: string; accent?: boolean };
 
 export type CaseStudySection =
   | { heading: string; prose: ProseSegment[] }
-  | { heading: string; cards: Card[]; columns?: 2 };
+  | { heading: string; diagram?: DiagramId; cards: Card[]; columns?: 2 };
 
 export type CaseStudy = {
   /** 히어로 위 accent 한 줄 (상태 + 맥락) */
@@ -277,6 +279,7 @@ export const caseStudies: Record<string, CaseStudy> = {
     sections: [
       {
         heading: "## 설교 자동 동기화 — WebSub 푸시",
+        diagram: "ycc-websub",
         cards: [
           {
             title: "폴링 없는 실시간 등록",
