@@ -32,10 +32,6 @@ function SectionHead({ children }: { children: React.ReactNode }) {
 
 // 좌측 라벨(기간) + 우측 내용. 랜딩 경력 섹션과 같은 문법이라 화면과 종이의
 // 인상이 이어지고, 1열 나열보다 밀도가 높다.
-//
-// 예전 주석은 "A4 1장에 들어간다"였는데 사실이 아니다 — 실제 인쇄는 3장이고,
-// globals.css의 @media print 주석대로 분량을 1장으로 강제하지 않기로 했다.
-// 읽기 편한 간격이 페이지 수보다 우선한다.
 function Row({
   label,
   children,
