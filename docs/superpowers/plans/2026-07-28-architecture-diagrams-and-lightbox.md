@@ -12,6 +12,32 @@
 
 ---
 
+## ⚠️ 실행 완료 (2026-07-29) — 이 문서의 코드를 그대로 복사하지 마라
+
+브랜치 `feat/architecture-diagrams`에서 12개 태스크를 전부 실행했다. 최종 상태는
+`lint` · `format:check` · `typecheck` · `test`(51) · `e2e`(30) · `build` 전부 통과다.
+
+**실행 중 이 계획서의 코드에서 결함 8건이 나왔다.** 각 태스크 안에 `> ⚠️ 정정` 블록으로
+표시해 뒀다. 이 문서를 다시 따라 할 일이 있으면 **정정 블록을 먼저 읽어라.**
+
+| 유형 | 건수 | 어떻게 잡혔나 |
+| --- | --- | --- |
+| 라벨이 노드에 가려 잘림 (Task 4·6) | 2 | 브라우저 렌더 검수 — 테스트로는 안 잡힌다 |
+| lint·typecheck 위반 (Task 8·9) | 3 | `npm run lint` / `npm run typecheck` |
+| 옛 컴포넌트 기준으로 쓰인 Task 9 | 1 | 대상 파일을 읽고 대조 |
+| geometry 퇴화 입력 (Task 2) | 2 | 코드 리뷰 |
+| 그림 ↔ 문안 모순 (Task 1·5) | 1 | 코드 리뷰 + ycc-website 실코드 재확인 |
+
+가장 중요한 교훈 두 가지.
+
+1. **렌더를 눈으로 보지 않으면 라벨 잘림은 절대 안 잡힌다.** 좌표는 타입도 테스트도
+   통과한다. Task 4·6의 브라우저 확인 단계를 건너뛰면 잘린 라벨이 그대로 배포된다.
+2. **그림과 글이 서로 다른 주장을 하는 사고가 실제로 났다.** 이 작업의 존재 이유가
+   그건데, 계획서 자체가 `5·3ⁿ`(문안)과 `5·3ⁿ⁻¹`(그림)로 갈려 있었다. 실코드
+   `computeNextRetry`가 `5 * 3^(attempts-1)`이라 그림이 맞았다.
+
+---
+
 ## 사전 확인 (모든 작업 공통)
 
 - 작업 디렉터리: `c:\Users\servi\projects\portfolio`
@@ -79,9 +105,18 @@
           {
             title: "동시성 제어 + 서버리스식 재시도",
             description:
-              "Postgres CTE UPDATE...RETURNING으로 설교 1건을 원자적 선점해 중복 요약 차단. sleep이 불가능하므로 재시도를 두 갈래로 나눴다 — 영상·자막 미준비는 QStash 지연 발행으로 30분 뒤 재투입(최대 12회), 요약 실패는 다음 시각(5·3ⁿ분)을 DB에 적어 두고 매시간 스위퍼가 회수한다. Gemini responseSchema로 요점·타임스탬프 챕터를 JSON 스키마로 강제.",
+              "Postgres CTE UPDATE...RETURNING으로 설교 1건을 원자적 선점해 중복 요약 차단. sleep이 불가능하므로 재시도를 두 갈래로 나눴다 — 영상·자막 미준비는 QStash 지연 발행으로 30분 뒤 재투입(최대 12회), 요약 실패는 다음 시각(5·3ⁿ⁻¹분)을 DB에 적어 두고 매시간 스위퍼가 최대 3회까지 회수한다. Gemini responseSchema로 요점·타임스탬프 챕터를 JSON 스키마로 강제.",
           },
 ```
+
+> ⚠️ **정정** — 원안은 `5·3ⁿ분`이었고 상한을 적지 않았다. 위 코드는 고친 뒤의 값이다.
+>
+> `ycc-website/src/lib/sermons/summarize.ts`의 실제 구현은
+> `computeNextRetry`가 `5 * Math.pow(3, Math.max(0, attempts - 1))`,
+> `MAX_SUMMARY_ATTEMPTS = 3`이다. 즉 **5·3ⁿ⁻¹분, 최대 3회**다.
+> `5·3ⁿ`으로 적으면 첫 재시도가 5분이 아니라 15분이 되어 사실과 다르고,
+> Task 5가 그리는 다이어그램 노드(`5 × 3ⁿ⁻¹ 분`)와도 어긋난다.
+> 같은 이유로 Task 5의 `DIAGRAM_META["ycc-qstash"].desc`도 함께 고쳐야 한다.
 
 - [ ] **Step 3: 검증**
 
@@ -253,10 +288,28 @@ export function midpoint(p: Point, q: Point): Point {
 }
 ```
 
+> ⚠️ **정정** — 위 `anchor`·`loopPath`에 퇴화 입력 결함이 둘 있다. 현재 다이어그램
+> 값으로는 도달하지 않지만, 순수층이고 재사용을 전제로 만든 함수라 고쳐 두는 편이 낫다.
+>
+> 1. **`anchor`가 폭 0인 박스에서 `NaN`을 반환한다.** `a.w === 0`이면 지배축 비교가
+>    `0 >= 0`으로 수평 분기에 들어가는데, `dx`도 0이면 `dy / Math.abs(dx)`가 `Infinity`가
+>    되고 `Infinity * 0`이 `NaN`이 된다. **NaN 좌표는 예외도 경고도 없이 선을 지운다** —
+>    가장 알아채기 어려운 실패다. `if (dx === 0 && dy === 0)` 폴백 바로 뒤에
+>    `if (a.w === 0) return ca;`를 넣는다(퇴화한 박스는 중심이 경계 위의 점이다).
+> 2. **`loopPath`가 반경을 제한하지 않는다.** 노드가 낮으면 두 접점 간격
+>    (`0.45 * h`)이 반경 2배보다 작아져 `V ${y2 - radius}`가 첫 호의 끝보다 위를
+>    가리키고 경로가 역주행한다. `radius > out`이면 첫 수평선이 노드 안쪽에서 시작한다.
+>    `const r = Math.max(0, Math.min(radius, out, (y2 - y1) / 2));`로 깎고 이후 전부 `r`을
+>    쓴다. 현재 값(`h=96`, `out=34`)에서는 12가 그대로 유지된다.
+>
+> 테스트도 함께 늘렸다 — 폭 0 박스에서 유한 좌표, 여러 방향에서 유한 좌표,
+> 낮은 노드에서 경로 비역주행, `out < radius`에서 수평선 시작점, 기존 값에서 반경 12 유지.
+> 최종 `geometry.test.ts`는 14 tests다.
+
 - [ ] **Step 4: 테스트 통과 확인**
 
 Run: `npx vitest run src/components/project/diagrams/geometry.test.ts`
-기대: PASS — 9 tests
+기대: PASS — 9 tests (위 정정을 함께 적용하면 14 tests)
 
 - [ ] **Step 5: 커밋**
 
@@ -946,6 +999,18 @@ dev 서버(`npm run dev`)에서 `http://localhost:3000/projects/ycc-website`를 
 
 겹치거나 잘리면 `NODES`의 `x`/`y`/`w`/`h`와 `DIAGRAM_META["ycc-websub"]`의 `width`/`height`를 조정한다. 화살표는 따라온다.
 
+> ⚠️ **정정 — 실제로 잘렸다.** `hub`(오른쪽 끝 484)와 `callback`(왼쪽 244... 원안 544)
+> 사이 간격이 60px인데 `"Atom XML push"` 라벨이 약 86px이라 양쪽 박스에 먹혀
+> `om XML pu`로 보였다. 라벨은 두 접점의 중점에 그려지므로 **간격보다 길면 무조건 잘린다.**
+>
+> 적용한 값: 오른쪽 열(`callback`·`publish`·`verify`·`db`)을 40px 밀어
+> `callback.x` 544 → **584**, `publish.x` 594 → **634**, `verify.x` 544 → **584**,
+> `db.x` 594 → **634**. 간격이 100px가 되어 라벨이 들어간다. 남는 오른쪽 여백만큼
+> `DIAGRAM_META["ycc-websub"].width`를 940 → **858**로 줄여 좌우 여백을 24px로 맞췄다.
+>
+> **교훈:** 라벨을 붙인 화살표는 두 노드 간격이 `라벨 길이 + 여유`보다 커야 한다.
+> 한국어는 11px 모노에서 글자당 약 10.5px, ASCII는 약 6.6px로 어림하면 된다.
+
 - [ ] **Step 12: 커밋**
 
 ```bash
@@ -978,11 +1043,16 @@ export type DiagramId = "ycc-websub" | "ycc-qstash";
 ```ts
   "ycc-qstash": {
     title: "AI 요약 파이프라인 — QStash 단계 체이닝과 두 갈래 재시도",
-    desc: "ingest-video, fetch-transcript, summarize 세 잡을 QStash 메시지로 이어 붙여 서버리스 실행 시간 제한을 피한다. 모든 잡 입구에서 QStash 서명을 검증한다. 영상 정보나 자막이 준비되지 않으면 QStash 지연 발행으로 30분 뒤 재투입하며 최대 12회 반복한다. 요약 실패는 다음 재시도 시각을 5 곱하기 3의 n제곱 분으로 DB에 적어 두고 매시간 스위퍼가 회수한다. 요약은 CTE 원자적 선점으로 중복 실행을 막는다.",
+    desc: "ingest-video, fetch-transcript, summarize 세 잡을 QStash 메시지로 이어 붙여 서버리스 실행 시간 제한을 피한다. 모든 잡 입구에서 QStash 서명을 검증한다. 영상 정보나 자막이 준비되지 않으면 QStash 지연 발행으로 30분 뒤 재투입하며 최대 12회 반복한다. 요약 실패는 다음 재시도 시각을 5 곱하기 3의 n 빼기 1 제곱 분으로 DB에 적어 두고 매시간 스위퍼가 최대 3회까지 회수한다. 요약은 CTE 원자적 선점으로 중복 실행을 막는다.",
     width: 940,
     height: 520,
   },
 ```
+
+> ⚠️ **정정** — 원안의 `desc`는 "5 곱하기 3의 n제곱 분"이었다. 아래 컴포넌트가 그리는
+> 노드 라벨은 `5 × 3ⁿ⁻¹ 분`인데 `desc`만 `5 × 3ⁿ`이라, **스크린리더 사용자와 시각
+> 사용자가 서로 다른 설명을 듣게 된다**(n=1에서 15분 vs 5분). `desc`는 다이어그램의
+> 대체 텍스트이므로 그림과 한 글자도 어긋나면 안 된다. Task 1 정정 블록과 같은 근거다.
 
 - [ ] **Step 2: 다이어그램 컴포넌트**
 
@@ -1061,9 +1131,11 @@ const NODES: DiagramNode[] = [
     x: 620,
     y: 286,
     w: 230,
-    h: 72,
+    // 정정: 보조 문구가 세 줄이라 다른 노드(두 줄, h=72)보다 한 줄만큼 높다.
+    // h를 72로 두면 "최대 3회"가 박스 하단에 붙어 여백이 무너진다.
+    h: 86,
     title: "summary_next_retry_at",
-    notes: ["5 × 3ⁿ⁻¹ 분", "DB에 다음 시각 기록"],
+    notes: ["5 × 3ⁿ⁻¹ 분", "DB에 다음 시각 기록", "최대 3회"],
   },
   {
     id: "db",
@@ -1381,6 +1453,13 @@ npm run typecheck
 - 레인 배경이 노드 뒤에 깔리고 레인 라벨이 노드에 가리지 않는다
 - 레인 경계가 노드를 자르지 않는다
 - `face-api.js` · `sharp` · `EXIF` · `webp` · `Promise.all` 표기가 정확하다
+
+> ⚠️ **정정 — 여기도 잘렸다.** `sharp`(오른쪽 끝 532)와 `blur`(왼쪽 572) 간격이 40px인데
+> `"얼굴 있음"` 라벨이 약 55px이라 `굴 있`만 보였다. Task 4와 같은 유형이다.
+>
+> 적용한 값: `blur.x` 572 → **612**(간격 80px). 블러 노드가 오른쪽으로 나가므로
+> 서버 레인도 함께 넓힌다 — `<Lane x={20} y={216} w={818} …>` → **`w={858}`**.
+> 레인을 안 넓히면 노드가 레인 밖으로 삐져나온다.
 
 - [ ] **Step 7: 커밋**
 
@@ -1841,6 +1920,28 @@ export function Lightbox({
 
 `onClose`가 `<dialog>`의 네이티브 close 이벤트에 걸려 있으므로 ESC·✕·프로그램적 close가 모두 같은 경로로 상태를 되돌린다. 포커스 복귀도 브라우저가 처리한다 — 모달을 닫으면 열기 전 포커스된 요소로 돌아간다.
 
+> ⚠️ **정정 3건.** 위 코드는 그대로는 `lint`·`typecheck`를 통과하지 못한다.
+>
+> 1. **`react-hooks/set-state-in-effect`** — 장을 넘길 때 확대를 되돌리는
+>    `useEffect(() => { setActualSize(false); … }, [index])`가 규칙 위반이다.
+>    effect는 스크롤 초기화(`scrollRef.current?.scrollTo(0, 0)`)만 남기고,
+>    확대 해제는 **이벤트 핸들러에서 직접** 한다 — `move()` 안과 close 핸들러 안.
+> 2. **`TS18047: 'index' is possibly 'null'`** — 조기 반환 가드가 `if (!item)`만
+>    검사하는데, TS는 `item`이 있다고 해서 `index`가 non-null임을 추론하지 못한다.
+>    헤더 카운터 `{index + 1}`에서 터진다. 가드를
+>    `if (index === null || !item) return …`로 바꿔 `index`도 함께 좁힌다.
+> 3. **확대 상태가 잔존한다** — "확대를 장 번호에 묶어 두면 effect 없이 저절로
+>    무효가 된다"는 접근(`actualSize = zoomedIndex === index`)은 **틀렸다.**
+>    `←`로 확대했던 장에 되돌아오거나, 닫고 같은 장을 다시 열면 조건이 다시 참이
+>    되어 확대 상태가 되살아난다. 앞으로 넘기는 것만 테스트하면 통과해 버린다.
+>    **평범한 boolean으로 두고 `move()`와 close에서 `setActualSize(false)`** 하는 것이
+>    맞다. 닫을 때 반드시 풀어야 재오픈이 fit으로 시작한다.
+>
+> 정리하면 `const [actualSize, setActualSize] = useState(false)`를 유지하되,
+> `move()` 첫 줄에서 `setActualSize(false)`, 그리고 `onClose` 대신
+> `handleClose = () => { setActualSize(false); onClose(); }`를 `<dialog onClose>`에 건다.
+> 1:1 버튼은 `onClick={() => setActualSize((v) => !v)}` 그대로면 된다.
+
 - [ ] **Step 3: 검증**
 
 ```bash
@@ -1865,6 +1966,40 @@ git commit -m "feat: 스크린샷·다이어그램 공용 라이트박스 셸"
 - Create: `src/components/project/ShotGallery.tsx`
 - Delete: `src/components/project/CaseStudyShots.tsx`
 - Modify: `src/app/projects/[slug]/page.tsx`
+
+> ⚠️ **정정 — 아래 코드는 옛 `CaseStudyShots`를 기준으로 쓰였다. 그대로 쓰면 안 된다.**
+>
+> 이 계획서를 쓴 뒤 커밋 `8ae319e`가 `CaseStudyShots`를 크게 고쳤는데 그 내용이 반영돼
+> 있지 않다. 아래 코드를 그대로 적용하면 **그 커밋이 고친 잘림 버그가 되살아나고
+> 모바일 프레임이 모든 상세 페이지에서 사라진다.**
+>
+> | 항목 | 실제 `CaseStudyShots` | 아래 계획서 코드 | 그대로 쓰면 |
+> | --- | --- | --- | --- |
+> | 높이 | 고정 없음, 원본 비율 | `h-[240px] md:h-[440px]` + `object-cover` | 1920×917이 좌우 40% 잘림 |
+> | props | `{ rows, mobile }` | `{ rows, caption }` | `mobileShot` 미전달 → `MobileFrame` 소멸. `shotsCaption` 필드는 존재하지 않아 항상 undefined |
+> | 이미지 | `getScreenshot()` 정적 임포트 + `placeholder="blur"` | `shot.src` 문자열 | blur 플레이스홀더 상실 |
+> | 프레임 | `BrowserFrame` — 제목 줄에 `shot.label` | 없음 | 화면 이름 표기 상실 |
+>
+> 아래 `⤢` 힌트의 주석("그리드에서는 아래쪽이 잘려 있다")도 이제 사실이 아니다. 안 잘린다.
+>
+> **실제로 적용한 방식:** `CaseStudyShots`를 `ShotGallery`로 `git mv`하고
+> **현재 구조를 전부 유지한 채 클릭만 얹었다.** `ROW`(높이 없음)·`BrowserFrame`·
+> `MobileFrame`·`getScreenshot`·blur를 그대로 두고, `BrowserFrame`의 **이미지 영역만**
+> `<button>`으로 감쌌다(제목 줄은 버튼 밖에 둔다 — 창틀 전체를 감싸면 화면 이름까지
+> 접근가능 이름에 섞인다). `<Lightbox>`는 `figure` 끝에 붙인다.
+>
+> 두 가지가 더 필요했다.
+>
+> - **`LightboxItem` 이미지 변형에 `path` 필드 추가.** 정적 임포트를 거치면 `src`가
+>   해시된 빌드 경로(`/_next/static/media/…`)라 헤더의 `~/screenshots/…` 표기로 쓸 수
+>   없다. `src`는 실제 주소(1:1이 원본을 받아야 관리자 화면 글자가 읽힌다),
+>   `path`는 표시용으로 나누고 `itemLabel`이 `path`를 쓴다.
+> - **평탄 인덱스를 렌더 중 카운터 증가로 구하면 안 된다.** 아래 코드의
+>   `let cursor = -1; … cursor += 1;`은 `react-hooks/immutability`에 걸린다
+>   (`Cannot reassign 'cursor' after render completes`). 앞선 줄의 장수를 그때그때
+>   더하는 순수 계산으로 바꾼다 —
+>   `const flatIndexOf = (row, col) => rows.slice(0, row).reduce((n, r) => n + r.length, 0) + col;`
+>   한 페이지에 줄이 서너 개뿐이라 비용이 없다.
 
 - [ ] **Step 1: 구현**
 
@@ -2217,10 +2352,31 @@ test.describe("반응형", () => {
 });
 ```
 
+> ⚠️ **정정 — 위 E2E는 확대 상태 잔존 버그를 놓친다.** `1:1`을 켜고 `ArrowRight`만
+> 확인하면, 확대를 장 번호에 묶어 둔 구현(Task 8 정정 3번)이 그대로 통과한다.
+> **되돌아오기(`ArrowLeft`)와 닫았다 다시 열기까지 검사해야 한다.**
+>
+> 실제로 추가한 테스트 두 개.
+>
+> - `장을 넘기거나 닫았다 열면 1:1이 풀린다` — 확대 → `→`(풀림) → `←`(여전히 풀림) →
+>   다시 확대 → `Esc` → 같은 썸네일 재오픈(fit으로 시작) 순으로 본다.
+> - `라이트박스를 열어도 marker id가 충돌하지 않는다` — 이 작업의 최대 위험을 눈으로
+>   한 번 본 것으로 끝내지 않는다. 라이트박스를 연 상태에서 `<marker>` id 유일성
+>   (`new Set(ids).size === ids.length`)과 `marker-end` 참조 무결성(끊긴 참조 0)을
+>   함께 검사한다.
+>
+> 최종 `e2e/diagrams.spec.ts`는 10 tests, 저장소 전체는 30 tests다.
+
 - [ ] **Step 3: E2E 실행**
 
 Run: `npm run e2e`
 기대: 전건 PASS.
+
+> 참고: 콜드 캐시에서 `smoke.spec.ts`의 `상세 스크린샷이 … 잘리지 않는다`가 60초
+> 타임아웃으로 한 번 깨질 수 있다. dev 서버의 이미지 최적화가 2워커와 경합해서다
+> (`playwright.config.ts`의 워커 수 주석에 같은 사연이 적혀 있다). 단독 실행하면 3초에
+> 통과한다 — 코드 회귀와 구분하려면 `npx playwright test smoke.spec.ts -g "잘리지 않는다"`로
+> 먼저 확인하라.
 
 가로 스크롤 테스트가 깨지면 `.prose-scroll` 컨테이너가 폭을 넘긴 것이다. `CaseStudyDiagram`의 래퍼에 `max-w-full`이 있는지 확인하고, 그래도 넘치면 상위 레이아웃에 `min-w-0`을 더한다(플렉스/그리드 자식은 기본 `min-width: auto`라 축소되지 않는다).
 
@@ -2246,6 +2402,14 @@ npm run e2e
 ```
 
 기대: 전부 통과. `format:check`가 깨지면 `npm run format`을 돌리고 결과를 커밋한다.
+
+> ⚠️ **정정 — `format:check`는 이 작업 이전부터 깨져 있었다.** main에서도 25개 파일이
+> 실패했다. 원인은 코드가 아니라 줄바꿈이다 — Windows 체크아웃에서 `core.autocrlf`가
+> 작업본을 CRLF로 바꾸는데 prettier는 LF를 기대하고, 저장소에 `.gitattributes`가 없었다.
+>
+> `* text=auto eol=lf`를 담은 `.gitattributes`를 추가하고 prettier를 한 번 돌려 해결했다
+> (별도 커밋). 인덱스는 이미 LF였던 터라 실제 내용 변경은 한 파일뿐이고 나머지는
+> 작업본만 LF로 돌아왔다. 이 작업 범위 밖이지만 Task 12가 통과할 수 없어 함께 고쳤다.
 
 - [ ] **Step 2: 프로덕션 빌드**
 
@@ -2279,3 +2443,19 @@ git commit -m "chore: 다이어그램·라이트박스 최종 정리"
 - `Esc`로 닫으면 포커스가 트리거로 돌아간다
 - 375px에서 페이지 본문이 가로 스크롤되지 않는다
 - `lint` · `format:check` · `typecheck` · `test` · `e2e` · `build` 전부 통과
+
+**달성 확인 (2026-07-29, 브랜치 `feat/architecture-diagrams`, 커밋 13개)**
+
+전 항목 충족. `lint` · `format:check` · `typecheck` 통과, `test` 51 passed,
+`e2e` 30 passed, `build` 성공(18 페이지). 표기 눈검사는 프로덕션 렌더에서 자동 대조해
+3개 페이지의 요구 표기 25개가 모두 존재하고 틀린 형태(`5·3ⁿ분`, `3의 n제곱`)는 남아
+있지 않음을 확인했다. 라이트박스를 연 상태의 marker id 유일성·참조 무결성도
+E2E로 고정했다.
+
+**이 작업 범위 밖으로 남긴 것**
+
+- `public/screenshots/ycc-home.png` 우하단에 "Windows 정품 인증" 워터마크가 있다.
+  썸네일에서는 눈에 안 띄었지만 라이트박스 `1:1`에서 선명하게 드러난다. 재촬영이 필요하다.
+- `worldeng-reservation`의 `"확정 시 슬롯 점유"` 라벨은 세로 화살표가 어절 사이 공백을
+  관통한다. 후광이 글자를 지키므로 읽히는 데 문제는 없어 그대로 뒀다. 거슬리면
+  `Arrow`에 `labelDx`를 추가해 세로 화살표의 라벨을 옆으로 밀면 된다.
