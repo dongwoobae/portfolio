@@ -287,7 +287,7 @@ export const caseStudies: Record<string, CaseStudy> = {
           {
             title: "콜백 보안 2겹 + 구독 자동 갱신",
             description:
-              "구독 검증은 우리 채널 토픽일 때만 hub.challenge 에코, 알림은 X-Hub-Signature(HMAC-SHA1)를 timing-safe 비교로 위조 차단. WebSub 리스 만료는 QStash cron 재구독으로 방지, 누락분은 재생목록 순회 백필로 보완.",
+              "구독 검증은 우리 채널 토픽일 때만 hub.challenge 에코, 알림은 X-Hub-Signature(HMAC-SHA1)를 timing-safe 비교로 위조 차단. WebSub 리스 만료는 2일 주기 QStash cron 재구독으로 방지, 푸시 소실분은 매일 채널 최신 영상과 DB를 대조하는 보정 잡으로 주워 담는다.",
           },
         ],
       },
@@ -301,9 +301,9 @@ export const caseStudies: Record<string, CaseStudy> = {
             accent: true,
           },
           {
-            title: "동시성 제어 + 서버리스식 백오프",
+            title: "동시성 제어 + 서버리스식 재시도",
             description:
-              "Postgres CTE UPDATE...RETURNING으로 설교 1건을 원자적 선점해 중복 요약 차단. sleep이 불가능하므로 QStash 지연 발행(delay)으로 지수 백오프(5·3ⁿ분) 구현. Gemini responseSchema로 요점·타임스탬프 챕터를 JSON 스키마로 강제.",
+              "Postgres CTE UPDATE...RETURNING으로 설교 1건을 원자적 선점해 중복 요약 차단. sleep이 불가능하므로 재시도를 두 갈래로 나눴다 — 영상·자막 미준비는 QStash 지연 발행으로 30분 뒤 재투입(최대 12회), 요약 실패는 다음 시각(5·3ⁿ분)을 DB에 적어 두고 매시간 스위퍼가 회수한다. Gemini responseSchema로 요점·타임스탬프 챕터를 JSON 스키마로 강제.",
           },
         ],
       },
