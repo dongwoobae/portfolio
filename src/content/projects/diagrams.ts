@@ -2,7 +2,8 @@
 // SVG 컴포넌트 레지스트리는 src/components/project/diagrams/index.ts에 있고,
 // Record<DiagramId, ComponentType>이라 여기 id를 추가하고 컴포넌트를 안 만들면 타입 검사가 깨진다.
 
-export type DiagramId = "ycc-websub" | "ycc-qstash" | "sumgim-blur";
+export type DiagramId =
+  "ycc-websub" | "ycc-qstash" | "sumgim-blur" | "worldeng-reservation";
 
 export type DiagramMeta = {
   /** svg <title> — 라이트박스 헤더와 접근가능 이름으로도 쓴다 */
@@ -32,5 +33,11 @@ export const DIAGRAM_META: Record<DiagramId, DiagramMeta> = {
     desc: "브라우저에서 이미지를 먼저 압축해 업로드 파일과 얼굴 좌표의 기준을 맞춘 뒤 face-api.js로 얼굴을 감지한다. TensorFlow.js 백엔드가 단일 스레드라 감지는 순차로 돈다. 업로드는 Server Action 직렬화를 피해 API Route로 병렬 전송한다. 서버는 세션과 매직바이트를 검증하고 sharp로 EXIF 회전을 보정한 뒤 리사이즈본 기준으로 좌표를 변환해 해당 영역만 블러 처리해 합성한다. 블러본과 원본을 R2에 병렬 업로드하고 메타데이터는 순차로 저장한다.",
     width: 980,
     height: 560,
+  },
+  "worldeng-reservation": {
+    title: "예약 시스템 — 가용 판정 공유와 이중예약 방어",
+    desc: "클라이언트 데이트피커는 가용 판정 API로 예약 불가일을 받아 비활성화하고, 서버 액션은 같은 판정 함수로 다시 검증한다. 판정은 공휴일 API와 관리자 휴무 지정, 예약 타입별 요일 규칙을 조합하며 공휴일 API 장애 시에는 통과시킨다. 제출은 요청 제한, Turnstile, 스키마 검증, 6개월 상한, 가용 재검증을 차례로 거쳐 저장된다. 전화 접수는 같은 테이블에 수동 등록으로 합류한다. 확정 예약의 날짜와 시간에는 부분 유니크 인덱스가 걸려 있어 앱 레벨 검사가 원자적이지 않은 D1에서도 이중예약이 최종 차단된다.",
+    width: 980,
+    height: 540,
   },
 };

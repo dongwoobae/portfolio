@@ -424,6 +424,35 @@ export const caseStudies: Record<string, CaseStudy> = {
           },
         ],
       },
+      {
+        heading: "## 예약 시스템 — 이중예약 방어",
+        diagram: "worldeng-reservation",
+        columns: 2,
+        cards: [
+          {
+            title: "가용 판정 로직을 클라이언트·서버가 공유",
+            description:
+              "공휴일 API·관리자 휴무 지정·예약 타입별 요일 규칙(타사 정비는 토요일만, 자사 A/S·교육은 일요일 제외)을 판정하는 함수 하나를 데이트피커와 서버 액션이 같이 쓴다. 화면에서 막은 날짜를 서버가 다시 검증하므로 규칙이 갈라지지 않는다. 공휴일 API 장애 시에는 fail-open으로 예약 자체가 멈추지 않게 했다.",
+            accent: true,
+          },
+          {
+            title: "이중예약 최종 방어선 — 부분 유니크 인덱스",
+            description:
+              "D1에서는 앱 레벨 check-then-insert가 원자적이지 않아 동시 요청이 같은 슬롯을 통과할 수 있다. 확정 예약에만 걸리는 partial unique index (date, hour) WHERE status='confirmed'로 DB가 마지막을 막는다. '시간 협의'(hour null)는 슬롯을 점유하지 않으므로 조건에서 제외했다.",
+            accent: true,
+          },
+          {
+            title: "공개 폼 다층 방어",
+            description:
+              "요청 제한(IP 슬라이딩 윈도우 10분 5회)을 Turnstile보다 먼저 걸어 불필요한 외부 호출을 줄이고, 이후 스키마 검증·6개월 상한·가용 재검증을 차례로 통과시킨다. 실패는 throw가 아니라 폼 상태로 돌려 입력이 유실되지 않게 했다.",
+          },
+          {
+            title: "전화 접수와 웹 예약을 한 테이블로",
+            description:
+              "사무실에 걸려 오는 전화 예약을 source='manual'로 같은 테이블에 등록한다. 캘린더가 두 경로를 한 화면에서 보여주므로 운영자가 장부를 이중으로 들고 있을 필요가 없다.",
+          },
+        ],
+      },
     ],
   },
 
