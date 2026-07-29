@@ -113,10 +113,22 @@ export function YccWebsub({
       {/* 화살표를 먼저 그린다 — SVG는 나중에 그린 것이 위에 오므로 노드 박스가 선을 덮는다. */}
       <Arrow nodes={N} from="yt" to="hub" label="업로드" accent />
       <Arrow nodes={N} from="hub" to="callback" label="Atom XML push" accent />
-      <Arrow nodes={N} from="callback" to="publish" label="videoId 파싱" accent />
+      <Arrow
+        nodes={N}
+        from="callback"
+        to="publish"
+        label="videoId 파싱"
+        accent
+      />
       <Arrow nodes={N} from="renew" to="hub" label="재구독" dashed />
       <Arrow nodes={N} from="hub" to="verify" label="구독 검증" dashed />
-      <Arrow nodes={N} from="reconcile" to="db" label="푸시 소실분 보정" dashed />
+      <Arrow
+        nodes={N}
+        from="reconcile"
+        to="db"
+        label="푸시 소실분 보정"
+        dashed
+      />
       {NODES.map((node) => (
         <Node key={node.id} node={node} />
       ))}

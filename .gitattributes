@@ -1,0 +1,10 @@
+# 줄바꿈을 저장소와 작업본 양쪽에서 LF로 고정한다.
+# Windows 체크아웃에서 core.autocrlf가 작업본을 CRLF로 바꾸면 prettier가
+# 기대하는 LF와 어긋나 `npm run format:check`가 전 파일을 불합격시킨다.
+* text=auto eol=lf
+
+# 바이너리는 어떤 변환도 하지 않는다.
+*.png binary
+*.jpg binary
+*.ico binary
+*.ttf binary
