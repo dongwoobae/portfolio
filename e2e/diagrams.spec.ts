@@ -22,7 +22,14 @@ test.describe("아키텍처 다이어그램", () => {
     });
   }
 
-  test("다이어그램 라이트박스는 1:1 토글이 없다", async ({ page }) => {
+  /**
+   * 다이어그램도 컨테이너 폭에 맞춰 축소되므로 원본 크기로 되돌리는 경로가
+   * 있어야 한다 — 좁은 화면에서 라벨을 읽는 유일한 방법이다. 벡터라 확대
+   * 개념이 없다고 보고 이 버튼을 뺐던 것이 가로 스크롤을 없애면서 뒤집혔다.
+   */
+  test("다이어그램 라이트박스에서 1:1로 원본 크기를 볼 수 있다", async ({
+    page,
+  }) => {
     await page.goto("/projects/ycc-website");
     const trigger = page
       .getByRole("button", { name: /^크게 보기: 설교 자동 동기화/ })
@@ -31,12 +38,48 @@ test.describe("아키텍처 다이어그램", () => {
 
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole("button", { name: "1:1" })).toHaveCount(0);
+
+    const svg = dialog.locator('svg[role="img"]');
+    const viewBoxWidth = Number(
+      (await svg.getAttribute("viewBox"))!.split(" ")[2],
+    );
+
+    const zoom = dialog.getByRole("button", { name: "1:1" });
+    await expect(zoom).toHaveAttribute("aria-pressed", "false");
+    await zoom.click();
+    await expect(zoom).toHaveAttribute("aria-pressed", "true");
+
+    // 원본 크기는 좌표계 폭 그대로여야 한다. 1px은 소수 배율 반올림 여유다.
+    const shown = (await svg.boundingBox())!.width;
+    expect(Math.abs(shown - viewBoxWidth)).toBeLessThanOrEqual(1);
 
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
     await expect(trigger).toBeFocused();
   });
+
+  /**
+   * 다이어그램은 컨테이너 폭에 맞춰 축소된다 — 좌표계가 컨테이너보다 넓으면
+   * 데스크톱에서까지 글자가 작아진다(11.5px 보조 문구가 10px 아래로 떨어진다).
+   * 폭을 넓히는 편집이 조용히 가독성을 깎지 못하게 여기서 막는다.
+   */
+  for (const { slug } of DIAGRAM_PAGES) {
+    test(`${slug} — 데스크톱에서 축소 없이 렌더된다`, async ({ page }) => {
+      await page.setViewportSize({ width: 1280, height: 900 });
+      await page.goto(`/projects/${slug}`);
+      const shrunk = await page.evaluate(() =>
+        [...document.querySelectorAll('svg[role="img"]')]
+          .map((svg) => ({
+            title: svg.querySelector("title")!.textContent,
+            좌표계: Number(svg.getAttribute("viewBox")!.split(" ")[2]),
+            렌더: svg.getBoundingClientRect().width,
+          }))
+          .filter((d) => d.렌더 < d.좌표계)
+          .map((d) => `${d.title}: ${d.좌표계} → ${Math.round(d.렌더)}px`),
+      );
+      expect(shrunk, shrunk.join(" / ")).toEqual([]);
+    });
+  }
 
   /**
    * 노드 문구를 한 글자 고치거나 글자 크기를 올리면 보조 문구가 박스를 넘친다.
@@ -80,6 +123,110 @@ test.describe("아키텍처 다이어그램", () => {
       expect(overflows, overflows.join(" / ")).toEqual([]);
     });
   }
+
+  /**
+   * 화살표가 무관한 노드 상자를 관통하면, 노드가 선보다 나중에 그려지므로
+   * 선이 상자 뒤로 사라져 화살표가 중간에 끊긴 것처럼 보인다. 좌표를 옮길
+   * 때마다 나는 사고라 선분 대 사각형 교차로 고정한다 (실제로 worldengco에서
+   * 이 방식으로 22px 관통을 찾아냈다).
+   */
+  for (const { slug } of DIAGRAM_PAGES) {
+    test(`${slug} — 화살표가 노드 상자를 관통하지 않는다`, async ({ page }) => {
+      await page.goto(`/projects/${slug}`);
+      await expect(page.locator('svg[role="img"]').first()).toBeVisible();
+
+      const crossings = await page.evaluate(() => {
+        // Liang-Barsky. 겹치는 구간의 길이를 돌려준다.
+        const overlap = (
+          x1: number,
+          y1: number,
+          x2: number,
+          y2: number,
+          r: { x: number; y: number; w: number; h: number },
+          pad: number,
+        ) => {
+          let t0 = 0;
+          let t1 = 1;
+          const dx = x2 - x1;
+          const dy = y2 - y1;
+          const limits: [number, number][] = [
+            [-dx, x1 - (r.x + pad)],
+            [dx, r.x + r.w - pad - x1],
+            [-dy, y1 - (r.y + pad)],
+            [dy, r.y + r.h - pad - y1],
+          ];
+          for (const [p, q] of limits) {
+            if (p === 0) {
+              if (q < 0) return 0;
+            } else if (p < 0) t0 = Math.max(t0, q / p);
+            else t1 = Math.min(t1, q / p);
+          }
+          return t1 > t0 ? (t1 - t0) * Math.hypot(dx, dy) : 0;
+        };
+
+        const found: string[] = [];
+        for (const svg of document.querySelectorAll('svg[role="img"]')) {
+          const boxes: {
+            x: number;
+            y: number;
+            w: number;
+            h: number;
+            label: string;
+          }[] = [];
+          for (const g of svg.querySelectorAll("g")) {
+            const rect = g.querySelector(":scope > rect");
+            if (!rect || rect.getAttribute("rx") !== "8") continue;
+            boxes.push({
+              x: Number(rect.getAttribute("x")),
+              y: Number(rect.getAttribute("y")),
+              w: Number(rect.getAttribute("width")),
+              h: Number(rect.getAttribute("height")),
+              label: g.querySelector(":scope > text")?.textContent ?? "?",
+            });
+          }
+          for (const line of svg.querySelectorAll("line")) {
+            const [x1, y1, x2, y2] = ["x1", "y1", "x2", "y2"].map((a) =>
+              Number(line.getAttribute(a)),
+            );
+            for (const b of boxes) {
+              // 선이 붙는 노드는 경계에서 시작·끝난다. 6px 안쪽으로 파고들고
+              // 그 구간이 4px을 넘을 때만 관통으로 본다.
+              const len = overlap(x1, y1, x2, y2, b, 6);
+              if (len > 4) {
+                found.push(`[${b.label}] 선이 ${Math.round(len)}px 파고듦`);
+              }
+            }
+          }
+        }
+        return found;
+      });
+
+      expect(crossings, crossings.join(" / ")).toEqual([]);
+    });
+  }
+
+  /**
+   * 브랜드 마크는 simple-icons에서 구운 경로를 그대로 쓴다. 생성 파일이
+   * 비거나 색이 빠지면 노드에 빈 자리만 남으므로 렌더 여부를 확인한다.
+   */
+  test("노드 브랜드 마크가 공식 색으로 렌더된다", async ({ page }) => {
+    await page.goto("/projects/ycc-website");
+    const marks = await page.evaluate(() =>
+      [...document.querySelectorAll('svg[role="img"] g[transform] > path')].map(
+        (p) => ({
+          d: (p.getAttribute("d") ?? "").length,
+          fill: p.getAttribute("fill") ?? "",
+        }),
+      ),
+    );
+    expect(marks.length, "브랜드 마크가 하나도 없다").toBeGreaterThan(0);
+    for (const m of marks) {
+      expect(m.d, "마크 경로가 비었다").toBeGreaterThan(20);
+      expect(m.fill, `마크 색이 hex가 아니다: ${m.fill}`).toMatch(
+        /^#[0-9A-F]{6}$/i,
+      );
+    }
+  });
 
   /**
    * 이 작업의 최대 위험. 라이트박스를 열면 같은 다이어그램이 문서에 두 벌

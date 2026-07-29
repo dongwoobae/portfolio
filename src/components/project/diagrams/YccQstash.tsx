@@ -48,18 +48,22 @@ const NODES: DiagramNode[] = [
     x: 24,
     y: 400,
     w: 268,
-    h: 84,
+    // 브랜드 캡션 한 줄만큼 세 줄짜리 기본 높이(84)보다 크다.
+    h: 99,
+    // 이 단계의 존재 이유가 Gemini 호출이라 마크를 단다. 제목에 이름이 없으니 캡션도 켠다.
+    brand: "googlegemini",
+    brandCaption: true,
     title: "summarize",
     notes: [
       "verifyQStash 서명 검증",
       "WITH claimed AS (UPDATE…RETURNING)",
-      "Gemini responseSchema",
+      "responseSchema로 JSON 강제",
     ],
     accent: true,
   },
   {
     id: "sweeper",
-    x: 620,
+    x: 580,
     y: 166,
     w: 230,
     h: 72,
@@ -68,7 +72,7 @@ const NODES: DiagramNode[] = [
   },
   {
     id: "backoff",
-    x: 620,
+    x: 580,
     y: 286,
     w: 230,
     // 보조 문구가 세 줄이라 다른 노드(두 줄, h=72)보다 한 줄만큼 높다.
@@ -78,11 +82,13 @@ const NODES: DiagramNode[] = [
   },
   {
     id: "db",
-    x: 620,
+    x: 580,
     y: 406,
     w: 230,
-    h: 72,
-    title: "Neon",
+    h: 87,
+    brand: "neon",
+    brandCaption: true,
+    title: "sermons 갱신",
     notes: ["quick_summary · chapters", "summary_status = ready"],
   },
 ];

@@ -17,7 +17,13 @@ export type LightboxItem =
       path: string;
       alt: string;
     }
-  | { kind: "diagram"; title: string; render: () => ReactNode };
+  | {
+      kind: "diagram";
+      title: string;
+      /** viewBox 좌표계 크기. 원본 크기 모드가 이 폭으로 컨테이너를 잡는다. */
+      width: number;
+      render: () => ReactNode;
+    };
 
 /** 헤더에 표시할 경로/제목 */
 function itemLabel(item: LightboxItem): string {
@@ -96,9 +102,6 @@ export function Lightbox({
   if (index === null || !item)
     return <dialog ref={dialogRef} aria-hidden="true" />;
 
-  // 다이어그램은 벡터라 확대 개념이 없다.
-  const canZoom = item.kind === "image";
-
   return (
     <dialog
       ref={dialogRef}
@@ -120,20 +123,20 @@ export function Lightbox({
           <span className="ml-auto hidden shrink-0 text-ghost sm:inline">
             {items.length > 1 ? "← → 이동 · esc 닫기" : "esc 닫기"}
           </span>
-          {canZoom && (
-            <button
-              type="button"
-              onClick={() => setActualSize((v) => !v)}
-              aria-pressed={actualSize}
-              className={`shrink-0 cursor-pointer rounded border px-2 py-1 ${
-                actualSize
-                  ? "border-line-accent text-accent"
-                  : "border-line text-muted"
-              } ${items.length > 1 ? "" : "ml-auto sm:ml-0"}`}
-            >
-              1:1
-            </button>
-          )}
+          {/* 다이어그램도 확대가 필요하다 — 인라인에서 컨테이너 폭에 맞춰 축소되므로
+              좁은 화면에서는 좌표계 원본 크기로 되돌려 훑는 것이 유일한 읽기 경로다. */}
+          <button
+            type="button"
+            onClick={() => setActualSize((v) => !v)}
+            aria-pressed={actualSize}
+            className={`shrink-0 cursor-pointer rounded border px-2 py-1 ${
+              actualSize
+                ? "border-line-accent text-accent"
+                : "border-line text-muted"
+            } ${items.length > 1 ? "" : "ml-auto sm:ml-0"}`}
+          >
+            1:1
+          </button>
           <button
             type="button"
             onClick={() => dialogRef.current?.close()}
@@ -166,8 +169,17 @@ export function Lightbox({
               }
             />
           ) : (
-            // 폭을 채우되 좌표계보다 좁아지면 컨테이너가 가로 스크롤한다.
-            <div className="w-full [&_svg]:h-auto [&_svg]:w-full">
+            // 맞춤은 화면을 채우되 좌표계의 두 배는 넘기지 않는다 — 넓은 모니터에서
+            // 13px 제목이 30px로 부풀면 다이어그램이 아니라 포스터가 된다.
+            // 원본 크기는 폭을 viewBox 그대로 못 박고 넘치는 만큼 컨테이너가 스크롤한다.
+            <div
+              className="w-full"
+              style={
+                actualSize
+                  ? { width: item.width }
+                  : { maxWidth: item.width * 2 }
+              }
+            >
               {item.render()}
             </div>
           )}

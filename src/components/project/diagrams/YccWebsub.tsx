@@ -11,19 +11,23 @@ import {
 
 const META = DIAGRAM_META["ycc-websub"];
 
+// 좌표계 폭은 CaseStudyDiagram 컨테이너 안쪽(854px)을 넘지 않는다 — 넘기면
+// 데스크톱에서 축소 렌더되어 11.5px 보조 문구가 10px 아래로 떨어진다.
 const NODES: DiagramNode[] = [
   {
     id: "yt",
     x: 24,
     y: 30,
-    w: 190,
+    w: 170,
     h: 58,
-    title: "YouTube 채널",
+    // 마크가 곧 이름이다 — 여기서만은 브랜드명을 글자로 적지 않는다.
+    brand: "youtube",
+    title: "채널",
     notes: ["설교 영상 업로드"],
   },
   {
     id: "hub",
-    x: 274,
+    x: 250,
     y: 30,
     w: 210,
     h: 58,
@@ -32,7 +36,7 @@ const NODES: DiagramNode[] = [
   },
   {
     id: "callback",
-    x: 584,
+    x: 560,
     y: 14,
     w: 250,
     h: 90,
@@ -46,18 +50,22 @@ const NODES: DiagramNode[] = [
   },
   {
     id: "publish",
-    x: 634,
+    x: 600,
     y: 160,
-    w: 200,
-    h: 58,
+    w: 210,
+    // 브랜드 캡션 한 줄만큼 기본 높이(58)보다 크다.
+    h: 73,
+    // QStash는 Upstash의 제품이라 제목의 이름과 마크의 브랜드가 다르다 — 캡션이 는다.
+    brand: "upstash",
+    brandCaption: true,
     title: "QStash ingest-video",
     notes: ["yt:videoId 발행"],
     accent: true,
   },
   {
     id: "verify",
-    x: 584,
-    y: 262,
+    x: 560,
+    y: 282,
     w: 250,
     h: 72,
     title: "GET /api/youtube/websub",
@@ -65,8 +73,8 @@ const NODES: DiagramNode[] = [
   },
   {
     id: "renew",
-    x: 274,
-    y: 262,
+    x: 250,
+    y: 282,
     w: 210,
     h: 72,
     title: "websub-renew",
@@ -74,8 +82,8 @@ const NODES: DiagramNode[] = [
   },
   {
     id: "reconcile",
-    x: 274,
-    y: 372,
+    x: 250,
+    y: 392,
     w: 210,
     h: 72,
     title: "reconcile-sermons",
@@ -83,11 +91,13 @@ const NODES: DiagramNode[] = [
   },
   {
     id: "db",
-    x: 634,
-    y: 372,
-    w: 200,
-    h: 72,
-    title: "Neon sermons",
+    x: 600,
+    y: 384,
+    w: 210,
+    h: 87,
+    brand: "neon",
+    brandCaption: true,
+    title: "sermons",
     notes: ["DB 대조 → 누락분", "직접 등록"],
   },
 ];

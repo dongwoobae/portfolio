@@ -17,6 +17,7 @@ export function CaseStudyDiagram({ id }: { id: DiagramId }) {
     {
       kind: "diagram",
       title: meta.title,
+      width: meta.width,
       render: () => (
         <Diagram titleId={`${base}-lb-title`} descId={`${base}-lb-desc`} />
       ),
@@ -26,9 +27,11 @@ export function CaseStudyDiagram({ id }: { id: DiagramId }) {
   return (
     <figure className="mb-6">
       <div className="relative">
-        {/* 축소하지 않고 가로 스크롤한다 — 줄이면 11px 라벨이 안 읽힌다.
-            globals.css의 .prose-scroll 규약을 따른다. */}
-        <div className="prose-scroll max-w-full rounded-lg border border-line bg-page p-3">
+        {/* 다이어그램은 컨테이너 폭에 맞춰 스스로 줄어든다 — 가로 스크롤을 두지
+            않는다. 좁은 화면에서 글자가 작아지는 값은 라이트박스의 원본 크기
+            토글로 치른다. 그래서 좌표계 폭은 여기 안쪽 폭(880 − 24 − 2 = 854)을
+            넘지 않게 잡아야 데스크톱이 축소 없이 렌더된다. */}
+        <div className="rounded-lg border border-line bg-page p-3">
           <Diagram titleId={`${base}-title`} descId={`${base}-desc`} />
         </div>
         <button

@@ -11,21 +11,29 @@ import {
 
 const META = DIAGRAM_META["worldeng-reservation"];
 
+// 세 열은 행위자다 — 방문자 화면(24) · 서버 로직(310) · D1(596).
+// 전화 접수는 관리자 일이지만 웹 예약과 같은 테이블에 쓰는 서버 경로라 가운데
+// 열에 둔다. 왼쪽 아래에 두면 table로 가는 직선이 submitReservation 상자의
+// 오른쪽 아래 모서리를 1px쯤 스친다 — 관통은 아니지만 굳이 스칠 이유가 없다.
+//
+// 이 다이어그램의 실제 결함은 휴무 지정 쪽이었다. 아래쪽(y 366)에 두면 rule로
+// 올라가는 대각선이 submitReservation을 34px 관통해, 노드가 선을 덮는 바람에
+// 화살표가 중간에 사라져 보였다. 위로 올려 짧은 대각선으로 만들어 해결했다.
 const NODES: DiagramNode[] = [
   {
     id: "picker",
     x: 24,
-    y: 40,
-    w: 226,
+    y: 30,
+    w: 200,
     h: 76,
     title: "데이트피커",
     notes: ["GET /api/availability", "예약 불가일 비활성화"],
   },
   {
     id: "rule",
-    x: 350,
-    y: 26,
-    w: 288,
+    x: 310,
+    y: 24,
+    w: 225,
     h: 104,
     title: "getUnavailableReason",
     notes: [
@@ -38,17 +46,17 @@ const NODES: DiagramNode[] = [
   {
     id: "form",
     x: 24,
-    y: 206,
-    w: 226,
+    y: 246,
+    w: 200,
     h: 58,
     title: "예약 폼",
     notes: ["타입 · 날짜 · 시간 · 연락처"],
   },
   {
     id: "action",
-    x: 350,
-    y: 180,
-    w: 288,
+    x: 310,
+    y: 190,
+    w: 225,
     h: 118,
     title: "submitReservation",
     notes: [
@@ -62,43 +70,50 @@ const NODES: DiagramNode[] = [
   },
   {
     id: "table",
-    x: 712,
-    y: 194,
-    w: 244,
-    h: 90,
+    x: 596,
+    y: 205,
+    w: 235,
+    h: 105,
+    // D1이 Cloudflare 제품이라는 사실 자체가 이 다이어그램의 전제다 —
+    // 마지막 방어선을 DB에 맡길 수 있는지가 여기서 갈린다.
+    brand: "cloudflare",
+    brandCaption: true,
     title: "D1 reservations",
     notes: ["source = 'web'", "status = 'pending'", "hour = null → 시간 협의"],
   },
   {
     id: "override",
     x: 24,
-    y: 366,
-    w: 226,
+    y: 150,
+    w: 200,
     h: 58,
     title: "관리자 — 휴무 지정",
     notes: ["day_overrides"],
   },
   {
     id: "manual",
-    x: 350,
-    y: 366,
-    w: 288,
+    x: 310,
+    y: 390,
+    w: 225,
     h: 58,
     title: "관리자 — 전화 접수",
     notes: ["source = 'manual'"],
   },
   {
     id: "index",
-    x: 712,
-    y: 396,
-    w: 244,
+    x: 596,
+    y: 390,
+    w: 235,
     h: 104,
+    // 같은 마크를 두 번 쓴다 — 오른쪽 열이 통째로 D1이라는 뜻이다.
+    // 이름은 위 노드가 이미 달았으므로 캡션은 켜지 않는다.
+    brand: "cloudflare",
     title: "partial unique index",
     notes: [
       "(date, hour) WHERE",
       "status = 'confirmed'",
       "AND hour IS NOT NULL",
-      "D1은 check-then-insert 비원자적",
+      "check-then-insert 비원자적",
     ],
     accent: true,
   },

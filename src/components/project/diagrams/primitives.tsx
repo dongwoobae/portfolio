@@ -2,11 +2,23 @@
 
 import { createContext, useContext, useId, type ReactNode } from "react";
 import { anchor, loopPath, midpoint, type Box } from "./geometry";
+import { LOGOS, type LogoId } from "./logos";
 
 /** 다이어그램이 선언하는 노드. 위치는 사람이 정하고 화살표 기하는 파생된다. */
 export type DiagramNode = Box & {
   id: string;
   title: string;
+  /**
+   * 이 노드가 곧 그 제품일 때만 붙인다. "이 노드가 저 제품을 호출한다" 정도로
+   * 마크를 달기 시작하면 어느 상자가 남의 서비스인지 구분이 사라진다.
+   */
+  brand?: LogoId;
+  /**
+   * 마크가 가리키는 브랜드 이름을 제목 아래 캡션으로 적는다. 제목에 이미 그
+   * 이름이 있으면 켜지 마라 — QStash(Upstash)처럼 마크의 브랜드와 제목의
+   * 이름이 다를 때만 정보가 는다.
+   */
+  brandCaption?: boolean;
   /** 제목 아래 모노 보조 문구. 줄바꿈은 배열 원소로 나눈다. */
   notes?: string[];
   accent?: boolean;
@@ -22,10 +34,19 @@ export function nodeMap(nodes: DiagramNode[]): NodeMap {
 // 인스턴스별 접두사를 내려보낸다.
 const PrefixContext = createContext("d");
 
+/** 노드 안쪽 좌우 여백 */
+const PAD = 14;
 const TITLE_DY = 22;
 const NOTE_TOP = 38;
 // 보조 문구 11.5px에 맞춘 행간. 13이면 한글 받침이 아랫줄에 닿는다.
 const NOTE_LINE = 14;
+
+/** 브랜드 마크 한 변. 원본 좌표계는 24×24라 이 값으로 축척한다. */
+const MARK = 16;
+/** 마크와 제목 사이 간격 */
+const MARK_GAP = 8;
+/** 브랜드 캡션이 밀어내는 높이. 이 캡션을 켠 노드는 h를 그만큼 키워야 한다. */
+const CAPTION_LINE = 15;
 
 /** 노드 보조 문구·경로 라벨 공통 크기. 페이지 본문(13px)보다 한 단계 작다. */
 const SMALL = 11.5;
@@ -53,12 +74,14 @@ export function DiagramSvg({
     <PrefixContext.Provider value={prefix}>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        width={width}
-        height={height}
         role="img"
         aria-labelledby={`${titleId} ${descId}`}
-        // 부모가 폭을 제한해도 좌표계를 유지한다. 축소하면 11px 라벨이 안 읽힌다.
-        className="max-w-none"
+        preserveAspectRatio="xMidYMid meet"
+        // width/height 속성을 주지 않고 컨테이너 폭에 맞춘다 — 어떤 화면에서도
+        // 가로 스크롤이 생기지 않는 대신 좁은 화면에서는 글자가 함께 줄어든다.
+        // 그래서 라이트박스에 원본 크기 토글이 있다: 모바일에서 읽는 경로는 그쪽이다.
+        // viewBox 좌표계는 배율과 무관하므로 라벨 위치는 어디서나 같다.
+        className="block h-auto w-full"
       >
         <title id={titleId}>{title}</title>
         <desc id={descId}>{desc}</desc>
@@ -109,7 +132,7 @@ export function Lane({ x, y, w, h, label }: Box & { label: string }) {
         strokeDasharray="3 4"
       />
       <text
-        x={x + 14}
+        x={x + PAD}
         y={y + 20}
         className="font-mono"
         fontSize={SMALL}
@@ -122,7 +145,10 @@ export function Lane({ x, y, w, h, label }: Box & { label: string }) {
 }
 
 export function Node({ node }: { node: DiagramNode }) {
-  const { x, y, w, h, title, notes = [], accent } = node;
+  const { x, y, w, h, title, notes = [], accent, brand, brandCaption } = node;
+  const mark = brand ? LOGOS[brand] : undefined;
+  const caption = mark && brandCaption ? mark.title : undefined;
+  const noteTop = y + NOTE_TOP + (caption ? CAPTION_LINE : 0);
   return (
     <g>
       <rect
@@ -134,19 +160,42 @@ export function Node({ node }: { node: DiagramNode }) {
         fill={accent ? "var(--color-card-hi)" : "var(--color-card)"}
         stroke={accent ? "var(--color-accent)" : "var(--color-faint)"}
       />
+      {mark && (
+        // 마크는 장식이 아니라 정보지만, svg 전체가 role="img"라 내부 요소는
+        // 보조기술에 노출되지 않는다. 마크만 이름을 지는 노드(YouTube처럼 제목에
+        // 브랜드명이 없는 경우)는 <desc>가 그 이름을 반드시 말해야 한다.
+        <g
+          transform={`translate(${x + PAD} ${y + TITLE_DY - 13}) scale(${MARK / 24})`}
+        >
+          <path d={mark.path} fill={mark.hex} />
+        </g>
+      )}
       <text
-        x={x + 14}
+        x={x + PAD + (mark ? MARK + MARK_GAP : 0)}
         y={y + TITLE_DY}
         fontSize={13}
         fill={accent ? "var(--color-accent)" : "var(--color-ink)"}
       >
         {title}
       </text>
+      {caption && (
+        // 브랜드 색이 아니라 tertiary로 적는다 — 마크가 색을 지고, 글자는
+        // 배경 대비 4.5:1을 보장받는 쪽이 낫다.
+        <text
+          x={x + PAD}
+          y={y + NOTE_TOP}
+          className="font-mono"
+          fontSize={SMALL}
+          fill="var(--color-tertiary)"
+        >
+          {caption}
+        </text>
+      )}
       {notes.map((note, i) => (
         <text
           key={i}
-          x={x + 14}
-          y={y + NOTE_TOP + i * NOTE_LINE}
+          x={x + PAD}
+          y={noteTop + i * NOTE_LINE}
           className="font-mono"
           fontSize={SMALL}
           fill="var(--color-muted)"
