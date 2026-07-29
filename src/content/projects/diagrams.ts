@@ -2,7 +2,7 @@
 // SVG 컴포넌트 레지스트리는 src/components/project/diagrams/index.ts에 있고,
 // Record<DiagramId, ComponentType>이라 여기 id를 추가하고 컴포넌트를 안 만들면 타입 검사가 깨진다.
 
-export type DiagramId = "ycc-websub" | "ycc-qstash";
+export type DiagramId = "ycc-websub" | "ycc-qstash" | "sumgim-blur";
 
 export type DiagramMeta = {
   /** svg <title> — 라이트박스 헤더와 접근가능 이름으로도 쓴다 */
@@ -26,5 +26,11 @@ export const DIAGRAM_META: Record<DiagramId, DiagramMeta> = {
     desc: "ingest-video, fetch-transcript, summarize 세 잡을 QStash 메시지로 이어 붙여 서버리스 실행 시간 제한을 피한다. 모든 잡 입구에서 QStash 서명을 검증한다. 영상 정보나 자막이 준비되지 않으면 QStash 지연 발행으로 30분 뒤 재투입하며 최대 12회 반복한다. 요약 실패는 다음 재시도 시각을 5 곱하기 3의 n제곱 분으로 DB에 적어 두고 매시간 스위퍼가 회수한다. 요약은 CTE 원자적 선점으로 중복 실행을 막는다.",
     width: 940,
     height: 520,
+  },
+  "sumgim-blur": {
+    title: "얼굴 자동 블러 업로드 파이프라인",
+    desc: "브라우저에서 이미지를 먼저 압축해 업로드 파일과 얼굴 좌표의 기준을 맞춘 뒤 face-api.js로 얼굴을 감지한다. TensorFlow.js 백엔드가 단일 스레드라 감지는 순차로 돈다. 업로드는 Server Action 직렬화를 피해 API Route로 병렬 전송한다. 서버는 세션과 매직바이트를 검증하고 sharp로 EXIF 회전을 보정한 뒤 리사이즈본 기준으로 좌표를 변환해 해당 영역만 블러 처리해 합성한다. 블러본과 원본을 R2에 병렬 업로드하고 메타데이터는 순차로 저장한다.",
+    width: 980,
+    height: 560,
   },
 };

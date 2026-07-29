@@ -198,6 +198,7 @@ export const caseStudies: Record<string, CaseStudy> = {
       },
       {
         heading: "## 핵심 엔지니어링 — 얼굴 자동 블러 파이프라인",
+        diagram: "sumgim-blur",
         cards: [
           {
             title: "클라이언트 감지 + 서버 블러 분리",

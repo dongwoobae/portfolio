@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import type { DiagramId } from "@/content/projects/diagrams";
+import { SumgimBlur } from "./SumgimBlur";
 import { YccQstash } from "./YccQstash";
 import { YccWebsub } from "./YccWebsub";
 
@@ -9,4 +10,5 @@ export type DiagramProps = { titleId: string; descId: string };
 export const DIAGRAMS: Record<DiagramId, ComponentType<DiagramProps>> = {
   "ycc-websub": YccWebsub,
   "ycc-qstash": YccQstash,
+  "sumgim-blur": SumgimBlur,
 };
