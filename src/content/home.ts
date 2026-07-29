@@ -8,16 +8,16 @@ import { careerItemSchema, type CareerItem } from "@/content/schema";
  * 한 줄이 한 호흡이어야 짧게 읽힌다(좁은 화면에서는 자연스럽게 더 접힌다).
  */
 export const heroHook: { text: string; accent?: boolean }[][] = [
-  [{ text: "운영자가 매일 반복하던 일을," }],
-  [{ text: "코드가 대신하게", accent: true }, { text: " 만듭니다." }],
+  [{ text: "도메인을 먼저", accent: true }, { text: " 보고" }],
+  [{ text: "기능을 설계합니다." }],
 ];
 
 /** 후킹 문장 아래 받쳐 주는 설명. 마찬가지로 줄 단위로 끊어 둔다. */
 export const heroIntro = [
   "기획부터 배포·운영까지 책임집니다.",
   "실서비스 2건 운영 중이고 첫 홈페이지를 본 곳들의 소개로 의뢰가 이어졌습니다",
-  "— 얼굴 자동 블러, WebSub 이벤트 파이프라인, 서버리스 메시지 큐 같은",
-  "문제를 코드로 풉니다.",
+  "— 얼굴 자동 블러, 설교 영상 수집·요약, 이중예약을 막는 예약 시스템까지",
+  "현장에 필요했던 기능을 코드로 만듭니다.",
 ];
 
 export const stackLines = [
