@@ -1,4 +1,8 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
+import { Lightbox, type LightboxItem } from "@/components/project/Lightbox";
 import type { MobileShot, Shot } from "@/content/projects/case-studies";
 import { getScreenshot } from "@/content/projects/screenshots";
 
@@ -19,13 +23,33 @@ const ROW = {
   },
 } as const;
 
-export function CaseStudyShots({
+export function ShotGallery({
   rows,
   mobile,
 }: {
   rows: Shot[][];
   mobile?: MobileShot;
 }) {
+  // 줄 구분 없이 평탄화한 순서가 라이트박스의 탐색 순서다. 모바일 프레임은
+  // 이미 실제 크기로 보이므로 넣지 않는다.
+  const items: LightboxItem[] = rows.flat().map((shot) => ({
+    kind: "image",
+    // 그리드는 next/image가 리사이즈한 것을 쓰지만 라이트박스 1:1은 원본이어야
+    // 관리자 화면 글자가 읽힌다.
+    src: getScreenshot(shot.src).src,
+    path: shot.src,
+    alt: shot.alt,
+  }));
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  /**
+   * 줄을 넘어가도 이어지는 평탄 인덱스. 렌더 중 카운터를 증가시키면 React
+   * Compiler가 막으므로(react-hooks/immutability) 앞선 줄의 장수를 그때그때
+   * 더한다 — 한 페이지에 줄이 서너 개뿐이라 비용이 없다.
+   */
+  const flatIndexOf = (row: number, column: number) =>
+    rows.slice(0, row).reduce((n, r) => n + r.length, 0) + column;
+
   return (
     <figure className="my-10 flex flex-col gap-3.5">
       {rows.map((row, index) => {
@@ -43,12 +67,19 @@ export function CaseStudyShots({
                 sizes={layout.sizes}
                 // 첫 장이 이 페이지의 LCP다. 나머지는 기본값(지연 로드).
                 priority={index === 0 && column === 0}
+                onOpen={() => setOpenIndex(flatIndexOf(index, column))}
               />
             ))}
           </div>
         );
       })}
       {mobile && <MobileFrame shot={mobile} />}
+      <Lightbox
+        items={items}
+        index={openIndex}
+        onIndexChange={setOpenIndex}
+        onClose={() => setOpenIndex(null)}
+      />
     </figure>
   );
 }
@@ -56,15 +87,20 @@ export function CaseStudyShots({
 /**
  * 데스크톱 스크린샷을 브라우저 창처럼 감싼다. 제목 줄이 화면 이름을 들고 있어
  * 스크린샷마다 무엇을 보는 중인지 바로 읽힌다 — 캡션 한 줄로 몰아 적지 않는다.
+ *
+ * 제목 줄은 그대로 두고 이미지 영역만 버튼으로 만든다. 창틀 전체를 버튼으로
+ * 감싸면 제목 줄 텍스트까지 버튼 이름에 섞여 접근가능 이름이 지저분해진다.
  */
 function BrowserFrame({
   shot,
   sizes,
   priority,
+  onOpen,
 }: {
   shot: Shot;
   sizes: string;
   priority: boolean;
+  onOpen: () => void;
 }) {
   return (
     <div className="overflow-hidden rounded-lg border border-line bg-card-deep">
@@ -78,14 +114,28 @@ function BrowserFrame({
           {shot.label}
         </span>
       </div>
-      <Image
-        src={getScreenshot(shot.src)}
-        alt={shot.alt}
-        sizes={sizes}
-        placeholder="blur"
-        priority={priority}
-        className="h-auto w-full bg-card"
-      />
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`크게 보기: ${shot.alt}`}
+        className="group relative block w-full cursor-pointer"
+      >
+        <Image
+          src={getScreenshot(shot.src)}
+          alt={shot.alt}
+          sizes={sizes}
+          placeholder="blur"
+          priority={priority}
+          className="h-auto w-full bg-card"
+        />
+        {/* 그리드에서는 폭에 맞춰 축소돼 있다 — 원본 크기로 보려면 누르라는 신호 */}
+        <span
+          aria-hidden="true"
+          className="absolute top-2 right-2 rounded border border-line bg-rail/90 px-1.5 py-0.5 font-mono text-[11px] text-muted opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+        >
+          ⤢
+        </span>
+      </button>
     </div>
   );
 }

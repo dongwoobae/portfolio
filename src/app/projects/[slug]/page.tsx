@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CaseStudyBody } from "@/components/project/CaseStudyBody";
-import { CaseStudyShots } from "@/components/project/CaseStudyShots";
+import { ShotGallery } from "@/components/project/ShotGallery";
 import { caseStudies } from "@/content/projects/case-studies";
 import { projects } from "@/content/projects/meta";
 import { getAdjacentProjects, getProjectBySlug } from "@/lib/projects";
@@ -85,7 +85,7 @@ export default async function ProjectPage({
           ))}
         </dl>
 
-        <CaseStudyShots rows={study.shotRows} mobile={study.mobileShot} />
+        <ShotGallery rows={study.shotRows} mobile={study.mobileShot} />
 
         <CaseStudyBody sections={study.sections} />
 

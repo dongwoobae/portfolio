@@ -9,12 +9,19 @@ import {
 } from "react";
 
 export type LightboxItem =
-  | { kind: "image"; src: string; alt: string }
+  | {
+      kind: "image";
+      /** 실제로 받아올 주소. 정적 임포트를 거치면 해시된 빌드 경로다. */
+      src: string;
+      /** 헤더에 보여줄 사람이 읽는 경로 (`/screenshots/…`). src와 다를 수 있다. */
+      path: string;
+      alt: string;
+    }
   | { kind: "diagram"; title: string; render: () => ReactNode };
 
 /** 헤더에 표시할 경로/제목 */
 function itemLabel(item: LightboxItem): string {
-  return item.kind === "image" ? `~${item.src}` : item.title;
+  return item.kind === "image" ? `~${item.path}` : item.title;
 }
 
 /** 푸터 캡션 — 새 문안을 만들지 않고 alt/제목을 그대로 쓴다 */
