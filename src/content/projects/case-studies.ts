@@ -296,6 +296,7 @@ export const caseStudies: Record<string, CaseStudy> = {
       },
       {
         heading: "## AI 요약 파이프라인 — 서버리스 메시지 큐",
+        diagram: "ycc-qstash",
         cards: [
           {
             title: "QStash 단계 체이닝",
