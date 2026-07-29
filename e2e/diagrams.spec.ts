@@ -39,6 +39,49 @@ test.describe("아키텍처 다이어그램", () => {
   });
 
   /**
+   * 노드 문구를 한 글자 고치거나 글자 크기를 올리면 보조 문구가 박스를 넘친다.
+   * 좌표는 타입도 단위 테스트도 통과하므로 실제 렌더에서 재는 수밖에 없다
+   * (이 작업 중 라벨 잘림이 두 번 났다). getBBox()로 실측해 고정한다.
+   */
+  for (const { slug } of DIAGRAM_PAGES) {
+    test(`${slug} — 노드 문구가 박스를 넘치지 않는다`, async ({ page }) => {
+      await page.goto(`/projects/${slug}`);
+      await expect(page.locator('svg[role="img"]').first()).toBeVisible();
+
+      const overflows = await page.evaluate(() => {
+        const found: string[] = [];
+        for (const svg of document.querySelectorAll('svg[role="img"]')) {
+          for (const g of svg.querySelectorAll("g")) {
+            const rect = g.querySelector(":scope > rect");
+            // 노드 박스는 rx=8, 레인은 rx=10이라 이걸로 구분한다.
+            if (!rect || rect.getAttribute("rx") !== "8") continue;
+            const right =
+              Number(rect.getAttribute("x")) +
+              Number(rect.getAttribute("width"));
+            const bottom =
+              Number(rect.getAttribute("y")) +
+              Number(rect.getAttribute("height"));
+            const label = g.querySelector(":scope > text")?.textContent ?? "?";
+            for (const t of g.querySelectorAll(":scope > text")) {
+              const b = (t as SVGGraphicsElement).getBBox();
+              // 왼쪽 패딩이 14px이므로 오른쪽도 최소 8px은 남아야 한다.
+              if (b.x + b.width > right - 8) {
+                found.push(`[${label}] "${t.textContent}" 우측 넘침`);
+              }
+              if (b.y + b.height > bottom - 4) {
+                found.push(`[${label}] "${t.textContent}" 하단 넘침`);
+              }
+            }
+          }
+        }
+        return found;
+      });
+
+      expect(overflows, overflows.join(" / ")).toEqual([]);
+    });
+  }
+
+  /**
    * 이 작업의 최대 위험. 라이트박스를 열면 같은 다이어그램이 문서에 두 벌
    * 존재하는데, <marker> id가 겹치면 url(#head)가 먼저 나온 쪽에 붙어 한쪽
    * 화살촉이 통째로 사라진다. id 유일성과 참조 무결성을 함께 본다.

@@ -24,7 +24,11 @@ const PrefixContext = createContext("d");
 
 const TITLE_DY = 22;
 const NOTE_TOP = 38;
-const NOTE_LINE = 13;
+// 보조 문구 11.5px에 맞춘 행간. 13이면 한글 받침이 아랫줄에 닿는다.
+const NOTE_LINE = 14;
+
+/** 노드 보조 문구·경로 라벨 공통 크기. 페이지 본문(13px)보다 한 단계 작다. */
+const SMALL = 11.5;
 
 export function DiagramSvg({
   titleId,
@@ -68,7 +72,7 @@ export function DiagramSvg({
             markerHeight="7"
             orient="auto-start-reverse"
           >
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--color-muted)" />
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--color-tertiary)" />
           </marker>
           <marker
             id={`${prefix}-head-accent`}
@@ -99,15 +103,17 @@ export function Lane({ x, y, w, h, label }: Box & { label: string }) {
         height={h}
         rx={10}
         fill="var(--color-rail)"
-        stroke="var(--color-line)"
+        // 레인은 배경 묶음이라 노드(faint)보다 옅어야 위계가 선다. 의미는
+        // 아래 라벨이 지므로 테두리 자체는 3:1을 요구하지 않는다.
+        stroke="var(--color-ghost)"
         strokeDasharray="3 4"
       />
       <text
         x={x + 14}
         y={y + 20}
         className="font-mono"
-        fontSize={11}
-        fill="var(--color-faint)"
+        fontSize={SMALL}
+        fill="var(--color-tertiary)"
       >
         {label}
       </text>
@@ -126,7 +132,7 @@ export function Node({ node }: { node: DiagramNode }) {
         height={h}
         rx={8}
         fill={accent ? "var(--color-card-hi)" : "var(--color-card)"}
-        stroke={accent ? "var(--color-line-accent)" : "var(--color-line)"}
+        stroke={accent ? "var(--color-accent)" : "var(--color-faint)"}
       />
       <text
         x={x + 14}
@@ -142,7 +148,7 @@ export function Node({ node }: { node: DiagramNode }) {
           x={x + 14}
           y={y + NOTE_TOP + i * NOTE_LINE}
           className="font-mono"
-          fontSize={10.5}
+          fontSize={SMALL}
           fill="var(--color-muted)"
         >
           {note}
@@ -159,7 +165,7 @@ function EdgeLabel({ x, y, text }: { x: number; y: number; text: string }) {
       y={y}
       textAnchor="middle"
       className="font-mono"
-      fontSize={11}
+      fontSize={SMALL}
       fill="var(--color-muted)"
       // 라벨 폭을 추정해 배경 사각형을 그리면 반드시 어긋난다.
       // 페이지 배경색으로 후광을 둘러 선 위에서 읽히게 한다.
@@ -208,7 +214,7 @@ export function Arrow({
         y1={start.y}
         x2={end.x}
         y2={end.y}
-        stroke={accent ? "var(--color-accent)" : "var(--color-line)"}
+        stroke={accent ? "var(--color-accent)" : "var(--color-tertiary)"}
         strokeWidth={1.5}
         strokeDasharray={dashed ? "5 4" : undefined}
         markerEnd={`url(#${prefix}-head${accent ? "-accent" : ""})`}
@@ -238,7 +244,7 @@ export function Loop({
       <path
         d={loopPath(node, out)}
         fill="none"
-        stroke="var(--color-line)"
+        stroke="var(--color-tertiary)"
         strokeWidth={1.5}
         strokeDasharray="5 4"
         markerEnd={`url(#${prefix}-head)`}
@@ -247,7 +253,7 @@ export function Loop({
         x={node.x + node.w + out + 8}
         y={node.y + node.h / 2 + 4}
         className="font-mono"
-        fontSize={10.5}
+        fontSize={SMALL}
         fill="var(--color-muted)"
       >
         {label}
