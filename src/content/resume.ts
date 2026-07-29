@@ -60,9 +60,14 @@ const raw = {
   certificates: [
     { name: "NAVER CLOUD PLATFORM Certified Professional", date: "2024.08" },
     { name: "NAVER CLOUD PLATFORM Certified Associate", date: "2024.08" },
-    { name: "컴퓨터활용능력 1급 필기", date: "2022.04" },
+    { name: "한국사능력검정시험 1급", date: "2022.02" },
   ],
-  languages: [{ name: "TOEIC", score: "825 (2022.04)" }],
+  // 어학 시험은 자격증과 나눠 둔다 — 렌더가 다르다(라벨이 취득일이 아니라 시험명).
+  // OPIc·TOEIC 둘 다 여기 있어야 한 자리에서 읽힌다.
+  languages: [
+    { name: "OPIc", score: "IM2 (2026.03)" },
+    { name: "TOEIC", score: "825 (2022.07)" },
+  ],
 };
 
 // 빌드타임 검증 — 형식이 틀리면 여기서 빌드가 깨진다.
