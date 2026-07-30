@@ -253,14 +253,13 @@ export const caseStudies: Record<string, CaseStudy> = {
     statusLine: "LIVE — 첫 프로젝트의 고객 소개로 이어진 후속 의뢰",
     title: "영천중앙교회 홈페이지",
     overview:
-      "교회 공식 홈페이지 및 콘텐츠 운영 CMS. 매주 반복되는 설교·주보·갤러리 운영 부담을 줄이기 위해 YouTube 설교 자동 동기화, HWP 주보 구조화, AI 요약·썸네일 생성까지 이벤트 기반 파이프라인으로 자동화했습니다.",
+      "교회 공식 홈페이지 및 콘텐츠 운영 CMS. 매주 반복되는 설교·주보·갤러리 운영 부담을 줄이기 위해 YouTube 설교 자동 동기화와 AI 요약·썸네일 생성을 자동화하고, 주보는 주요 내용 카드와 PDF 이미지로 한눈에 볼 수 있게 구성했습니다.",
     meta: [
       { label: "ROLE", value: "기획 · 설계 · 개발 · 배포 · 운영" },
       { label: "PERIOD", value: "운영 중" },
       {
         label: "STACK",
-        value:
-          "Next.js · TypeScript · Neon · Drizzle · Better Auth · R2 · HWP Parser",
+        value: "Next.js · TypeScript · Neon · Drizzle · Better Auth · R2",
       },
       {
         label: "LINKS",
@@ -339,9 +338,9 @@ export const caseStudies: Record<string, CaseStudy> = {
         columns: 2,
         cards: [
           {
-            title: "HWP 주보 구조화",
+            title: "주보 등록 — 자동화보다 정확성",
             description:
-              "HWP 바이너리를 직접 파싱해 웹에서 구조화 렌더링 — 매주 주보 등록을 업로드 한 번으로 축소.",
+              "HWP 자동 파싱을 구현했지만 직접 검수하며 처리 한계를 발견해 사용자에게 공유했고, 사용자도 기능이 난해해 사용하기 어렵다는 의견을 전달. 합의하에 주요 내용은 직접 입력하는 한눈에 보기 카드로 제공하고 PDF 주보는 이미지로 열람하도록 전환.",
           },
           {
             title: "AI 설교 썸네일 생성",
