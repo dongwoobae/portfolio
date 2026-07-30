@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from "@playwright/test";
+import { gotoPage } from "./navigation";
 
 const PROJECT_SLUGS = [
   "modu-campus",
@@ -65,7 +66,7 @@ test("레일 네비가 해당 섹션으로 이동시킨다", async ({ page }) =>
 
 test("프로젝트 상세 5장이 모두 뜨고 스크린샷이 로드된다", async ({ page }) => {
   for (const slug of PROJECT_SLUGS) {
-    const response = await page.goto(`/projects/${slug}`);
+    const response = await gotoPage(page, `/projects/${slug}`);
     expect(response?.status(), `${slug} 응답`).toBe(200);
 
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -132,7 +133,7 @@ const UNCROPPED_PAGES = [
 
 test("상세 스크린샷이 줄 구성과 무관하게 잘리지 않는다", async ({ page }) => {
   for (const { slug, shots: expected } of UNCROPPED_PAGES) {
-    await page.goto(`/projects/${slug}`);
+    await gotoPage(page, `/projects/${slug}`);
 
     const shots = page.locator("figure img");
     await expect(shots.first()).toBeVisible();
@@ -150,7 +151,7 @@ test("상세 스크린샷이 줄 구성과 무관하게 잘리지 않는다", as
 
 test("상세마다 모바일 화면이 함께 뜬다", async ({ page }) => {
   for (const slug of PROJECT_SLUGS) {
-    await page.goto(`/projects/${slug}`);
+    await gotoPage(page, `/projects/${slug}`);
 
     const mobile = page.getByRole("img", { name: /모바일/ });
     await expect(mobile, `${slug} 모바일 화면`).toBeVisible();
@@ -162,16 +163,20 @@ test("상세마다 모바일 화면이 함께 뜬다", async ({ page }) => {
 });
 
 test("상세 이전/다음이 목록 순서대로 순환한다", async ({ page }) => {
-  await page.goto("/projects/modu-campus");
+  await gotoPage(page, "/projects/modu-campus");
   // 첫 프로젝트의 이전은 목록(홈)이다.
   await expect(page.getByRole("link", { name: "← 목록으로" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /다음:/ })).toHaveAttribute(
+    "href",
+    "/projects/ankang-sumgim",
+  );
 
-  await page.getByRole("link", { name: /다음:/ }).click();
-  await expect(page).toHaveURL("/projects/ankang-sumgim");
-
-  await page.goto("/projects/hmsu");
+  await gotoPage(page, "/projects/hmsu");
   // 마지막 프로젝트의 다음도 목록으로 빠진다.
-  await expect(page.getByRole("link", { name: "목록으로 →" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "목록으로 →" })).toHaveAttribute(
+    "href",
+    "/",
+  );
 });
 
 test("없는 경로는 404를 반환한다", async ({ page }) => {
@@ -226,7 +231,7 @@ test("연락처가 mailto 없이 복사 방식으로 동작한다", async ({
 
 test("전화번호가 어느 페이지에도 노출되지 않는다", async ({ page }) => {
   for (const path of ["/", "/projects/modu-campus"]) {
-    await page.goto(path);
+    await gotoPage(page, path);
     await expect(page.locator("body")).not.toContainText("5586");
   }
 });
@@ -236,7 +241,7 @@ test("375px에서 어느 페이지도 가로로 밀리지 않는다", async ({ p
   await page.setViewportSize({ width: 375, height: 800 });
 
   for (const path of ["/", ...PROJECT_SLUGS.map((s) => `/projects/${s}`)]) {
-    await page.goto(path);
+    await gotoPage(page, path);
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth,
     );
