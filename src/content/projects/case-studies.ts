@@ -348,6 +348,16 @@ export const caseStudies: Record<string, CaseStudy> = {
             description:
               "AI가 한글을 못 그리는 문제를 피해 배경만 AI 생성, 글자는 @vercel/og로 코드 합성. 누끼는 자막 밴드 crop + preview 사이즈 처리로 유료 크레딧 0원 설계.",
           },
+          {
+            title: "소식 예약 게시 — 서버리스 스케줄링",
+            description:
+              "노출 여부는 항상 DB 조건(publishedAt ≤ now)이 결정하고, QStash 지연 콜백은 공개 시각에 캐시 재검증만 수행. 콜백이 멱등이라 예약을 바꿔도 기존 메시지를 취소할 필요가 없고, 발행 실패 시 ISR이 백스톱으로 동작한다.",
+          },
+          {
+            title: "관리 목록 UX",
+            description:
+              "등록 버튼 위치 통일, 제목 클릭 시 공개 페이지 새 창, 삭제 확인 모달 — 운영자가 매주 쓰는 화면의 마찰을 줄이는 개선을 운영하며 계속 반영.",
+          },
         ],
       },
     ],
