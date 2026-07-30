@@ -13,8 +13,8 @@ test("메인에 레일·히어로·전 섹션이 보인다", async ({ page }) =>
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("배동우");
   // 후킹 문장은 타이핑을 기다리지 않고 첫 화면에 바로 떠 있어야 한다.
-  await expect(page.getByText("운영자가 매일 반복하던 일을,")).toBeInViewport();
-  await expect(page.getByText("코드가 대신하게")).toBeInViewport();
+  await expect(page.getByText("도메인을 먼저")).toBeInViewport();
+  await expect(page.getByText("기능을 설계합니다.")).toBeInViewport();
   await expect(
     page.getByRole("img", { name: "배동우 프로필 사진" }),
   ).toBeVisible();
