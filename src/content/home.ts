@@ -33,7 +33,8 @@ const rawCareer = [
     kind: "job",
     current: true,
     title: "모바일이앤엠애드",
-    description: "· 이팝콘 다이렉트(오픈몰) 백엔드 · AWS 서버 설계·배포",
+    description:
+      "· 모바일 쿠폰 B2B 수작업을 온라인화하는 오픈몰 백엔드 · AWS 인프라 설계·기안",
   },
   {
     period: "2024.11–2025.07",
