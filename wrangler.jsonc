@@ -9,6 +9,17 @@
   // 날짜를 올릴 때는 cf-typegen을 다시 돌리고 배포 전 preview로 회귀 확인.
   "compatibility_date": "2026-07-02",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // wrangler는 이 필드가 없어도 기본값(전부 off)을 배포마다 보낸다. 대시보드에서 켠
+  // 설정이 되돌아가므로 여기 둬야 유지된다. traces는 비용 대비 얻을 게 없어 끈다.
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "invocation_logs": true,
+    },
+    "traces": {
+      "enabled": false,
+    },
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
