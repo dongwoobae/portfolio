@@ -55,25 +55,6 @@ export default function RootLayout({
             }),
           }}
         />
-        {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
-          // Cloudflare Web Analytics. 쿠키를 쓰지 않는 익명 집계라 동의 배너가
-          // 필요 없다.
-          //
-          // 현재 dwoobae.com은 Cloudflare 대시보드의 "Automatic setup"으로
-          // 계측 중이다. 프록시가 같은 beacon.min.js를 응답에 직접 주입하므로
-          // 이 스크립트와 수집 내용이 완전히 같다.
-          //
-          // 따라서 NEXT_PUBLIC_CF_BEACON_TOKEN을 채우면 비콘이 두 번 발사돼
-          // 조회수가 두 배로 잡힌다. 자동 주입을 끄지 않는 한 이 값은 비워 둔다.
-          // 이 경로가 필요한 경우는 사이트가 Cloudflare 프록시를 거치지 않을 때뿐이다.
-          <script
-            defer
-            src="https://static.cloudflareinsights.com/beacon.min.js"
-            data-cf-beacon={JSON.stringify({
-              token: process.env.NEXT_PUBLIC_CF_BEACON_TOKEN,
-            })}
-          />
-        )}
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:font-medium focus:text-page"

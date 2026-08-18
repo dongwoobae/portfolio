@@ -270,7 +270,9 @@ Chrome 인쇄 미리보기로 확인하고, 흑백·컬러 양쪽으로 실제 �
 
 ## Phase 4 — 애널리틱스
 
-Cloudflare Web Analytics를 `src/app/layout.tsx`에 넣는다. 쿠키를 쓰지 않아 동의 배너가 필요 없고, Workers 배포와 정합한다. 토큰은 `NEXT_PUBLIC_CF_BEACON_TOKEN` 환경변수로 주입하고, 값이 없으면 스크립트를 렌더하지 않아 로컬 개발에 영향을 주지 않는다.
+Cloudflare Web Analytics로 방문을 집계한다. 쿠키를 쓰지 않아 동의 배너가 필요 없고, Workers 배포와 정합한다.
+
+**2026-08-18 — 계측 경로를 대시보드 "Automatic setup"으로 확정.** 원안은 `src/app/layout.tsx`에서 `NEXT_PUBLIC_CF_BEACON_TOKEN`을 읽어 비콘 스크립트를 직접 렌더하는 것이었다. 그러나 dwoobae.com은 Cloudflare 프록시를 거치므로 프록시가 같은 `beacon.min.js`를 응답에 이미 주입한다 — 토큰을 채우면 비콘이 두 번 발사돼 조회수가 두 배로 잡힌다. 수동 주입 분기와 환경변수를 삭제했고 저장소에 계측 코드는 남지 않는다. 이 경로가 다시 필요해지는 경우는 사이트가 Cloudflare 프록시를 거치지 않게 될 때뿐이다.
 
 ---
 
