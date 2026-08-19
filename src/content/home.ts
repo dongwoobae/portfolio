@@ -41,7 +41,8 @@ const rawCareer = [
     kind: "job",
     current: false,
     title: "메디케이시스템",
-    description: "· 한약안전사용플랫폼 1인 담당 — 기획·데이터 수집·개발",
+    description:
+      "· 한약안전사용플랫폼(국가 R&D 과제) 1인 담당 — 기획·데이터 수집·개발",
   },
   {
     period: "2024.03–09",
