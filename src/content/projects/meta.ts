@@ -42,7 +42,7 @@ const rawProjects = [
     slug: "hmsu",
     order: 5,
     title: "한약안전사용 플랫폼",
-    summary: "복지부 과제 · 공공데이터 3만건+ 통합",
+    summary: "5개년 국가 R&D 과제 · 한약 데이터 3만건+ 통합",
     stackLine: "java · mariadb",
     badge: { label: "1인 PM", tone: "muted" },
     preview: "/screenshots/hmsu-home.png",
