@@ -48,14 +48,13 @@ export default function HomePage() {
 
         <Section label="개발 관점" prompt="$ cat perspective.md">
           <p className="max-w-[680px] text-sm leading-[1.9] text-pretty text-muted">
-            웹사이트를 화면과 기능의 조합이 아니라{" "}
+            웹사이트를 기능의 모음이 아니라{" "}
             <span className="text-ink">
-              각 도메인의 운영 문제를 줄이는 도구
+              도메인의 업무 흐름을 소프트웨어로 옮기는 작업
             </span>
-            로 설계합니다. AI가 코드를 빠르게 생성하는 시대일수록 중요한 것은
-            &ldquo;무엇을 왜 만들어야 하는가&rdquo; — 사용자의 업무 흐름과
-            운영자의 반복 작업을 먼저 이해하고, 운영자가 체감할 수 있는 차별화
-            기능을 제품 안에 녹입니다.
+            으로 생각합니다. 사용자·운영자와 요구사항을 맞추고, 반복 작업과 예외
+            상황을 먼저 파악한 뒤 데이터 구조와 백엔드 로직으로 해결합니다.
+            기술을 먼저 정하기보다 실제 업무에 필요한 구조를 고릅니다.
           </p>
         </Section>
 
@@ -133,7 +132,7 @@ export default function HomePage() {
           />
         </Section>
 
-        <Section id="team" label="팀 프로젝트" prompt="$ ls team/">
+        <Section id="team" label="교육과정 팀 프로젝트" prompt="$ ls team/">
           <div className="grid gap-3.5 md:grid-cols-2">
             {team.map((item) => (
               <div

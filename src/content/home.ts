@@ -14,10 +14,10 @@ export const heroHook: { text: string; accent?: boolean }[][] = [
 
 /** 후킹 문장 아래 받쳐 주는 설명. 마찬가지로 줄 단위로 끊어 둔다. */
 export const heroIntro = [
-  "기획부터 배포·운영까지 책임집니다.",
-  "실서비스 2건 운영 중이고 첫 홈페이지를 본 곳들의 소개로 의뢰가 이어졌습니다",
+  "백엔드를 중심으로 서비스의 데이터와 업무 흐름을 설계합니다.",
+  "필요하면 프론트엔드와 인프라까지 연결해 실제 운영 가능한 형태로 만듭니다",
   "— 얼굴 자동 블러, 설교 영상 수집·요약, 이중예약을 막는 예약 시스템까지",
-  "현장에 필요했던 기능을 코드로 만듭니다.",
+  "사용자와 운영자가 실제로 겪는 문제를 코드로 풉니다.",
 ];
 
 export const stackLines = [
@@ -42,7 +42,7 @@ const rawCareer = [
     current: false,
     title: "메디케이시스템",
     description:
-      "· 한약안전사용플랫폼(국가 R&D 과제) 1인 담당 — 기획·데이터 수집·개발",
+      "· 한약안전사용플랫폼(국가 R&D 과제) 기획·데이터·개발 · 외부 기관 데이터 협의",
   },
   {
     period: "2024.03–09",
@@ -93,11 +93,11 @@ export const highlights = [
     accent: false,
   },
   {
-    slug: "worldengco",
-    kicker: "wix → d1 · dry-run/apply",
-    title: "Wix 사이트 데이터 자체 서비스 이관",
+    slug: "hmsu",
+    kicker: "multi-source data matching",
+    title: "서로 다른 한약 데이터를 어디까지 같은 약재로 볼 것인가",
     description:
-      "기존 Wix 사이트의 게시물을 이관 스크립트로 자동 임포트. dry-run으로 검증한 뒤 apply하는 2단계 설계로 운영 데이터를 안전하게 이전.",
+      "기관별 데이터가 1:1로 대응하지 않는 문제를 학명·라틴명 기준으로 대조하고, 기원 식물이 갈리는 항목은 약전 생약명 단위까지만 이어 잘못된 정보 매칭을 방지.",
     accent: false,
   },
 ] as const;

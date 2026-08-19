@@ -1,8 +1,10 @@
 export const site = {
   name: "배동우",
   role: "백엔드 중심 풀스택 개발자",
+  // meta description이자 OG description이다(src/app/layout.tsx). 사이트보다 먼저
+  // 읽히는 한 줄이라, 작업 범위가 아니라 무엇을 하는 개발자인지를 둔다.
   tagline:
-    "실사용자가 있는 서비스를 수주부터 설계·개발·운영까지 혼자 책임집니다.",
+    "도메인과 업무 흐름을 이해한 뒤 백엔드 중심으로 시스템을 설계합니다.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://dwoobae.com",
   email: "dw5817@gmail.com",
   github: "https://github.com/dongwoobae",

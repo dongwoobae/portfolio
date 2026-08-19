@@ -31,7 +31,12 @@ test("메인에 레일·히어로·전 섹션이 보인다", async ({ page }) =>
   ]) {
     await expect(page.getByText(prompt, { exact: true })).toBeVisible();
   }
-  for (const label of ["경력", "하이라이트", "프로젝트", "팀 프로젝트"]) {
+  for (const label of [
+    "경력",
+    "하이라이트",
+    "프로젝트",
+    "교육과정 팀 프로젝트",
+  ]) {
     await expect(
       page.getByRole("region", { name: label, exact: true }),
     ).toBeVisible();
