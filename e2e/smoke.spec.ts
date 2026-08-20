@@ -86,14 +86,13 @@ test("프로젝트 상세 5장이 모두 뜨고 스크린샷이 로드된다", a
 });
 
 /**
- * 경로가 틀리거나 최적화가 실패하면 자연 크기가 0으로 남는다.
+ * 정적 임포트 경로가 틀리면 자연 크기가 0으로 남는다.
  * 실제로 바이트가 도착했는지는 이 함수만 본다 — 대표 스크린샷에만 쓴다.
  */
 async function expectLoaded(shot: Locator, label: string) {
   await expect
     .poll(() => shot.evaluate((img: HTMLImageElement) => img.naturalWidth), {
       message: `${label} 로드`,
-      timeout: 60_000,
     })
     .toBeGreaterThan(0);
 }
@@ -104,12 +103,12 @@ async function expectLoaded(shot: Locator, label: string) {
  *
  * 원본 비율은 `naturalWidth`가 아니라 **width/height 속성**에서 읽는다.
  * next/image가 정적 임포트의 원본 치수를 그대로 심어 두므로 이미지 바이트가
- * 한 장도 도착하지 않아도 값이 있다. 실제로 /_next/image 응답을 전부 막고
- * 재 봐도 그려진 비율과 최대 0.004 차이로 일치한다.
+ * 한 장도 도착하지 않아도 값이 있다. 실제로 이미지 응답을 전부 막고 재 봐도
+ * 그려진 비율과 최대 0.004 차이로 일치한다.
  *
  * 이 구분이 중요하다 — 예전에는 잘림 판정이 로드 완료를 기다렸고, 그래서
- * dev 서버 이미지 최적화가 밀리면 레이아웃과 무관한 이유로 깨졌다. CI에서
- * 재시도 2회까지 전부 실패한 것이 이 경우이고, 한 번 실패에 192초를 썼다.
+ * 이미지 응답이 밀리면 레이아웃과 무관한 이유로 깨졌다. CI에서 재시도 2회까지
+ * 전부 실패한 것이 이 경우이고, 한 번 실패에 192초를 썼다.
  */
 async function expectUncropped(shot: Locator, label: string) {
   const ratios = await shot.evaluate((img: HTMLImageElement) => ({

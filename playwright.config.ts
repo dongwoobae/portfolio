@@ -22,6 +22,6 @@ export default defineConfig({
     url: "http://127.0.0.1:3100",
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
-    env: { NEXT_DIST_DIR: ".next-e2e" },
+    env: { NEXT_DIST_DIR: ".next-e2e", NEXT_E2E: "1" },
   },
 });
