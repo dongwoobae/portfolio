@@ -1,13 +1,15 @@
 import { expect, test, type Locator } from "@playwright/test";
 import { gotoPage } from "./navigation";
 
+// meta.ts의 order와 같은 순서로 둔다. 아래 검증들은 순서에 기대지 않지만,
+// 목록과 다른 순서를 적어 두면 읽는 쪽이 둘 중 어느 것이 맞는지 헷갈린다.
 const PROJECT_SLUGS = [
-  "modu-campus",
-  "ankang-sumgim",
-  "ycc-website",
   "worldengco",
-  "hmsu",
   "coupon-b2b-mall",
+  "ycc-website",
+  "ankang-sumgim",
+  "hmsu",
+  "modu-campus",
 ];
 
 // 스크린샷을 갖는 프로젝트. 사내 업무 케이스는 공개할 수 있는 화면이 없어
@@ -55,10 +57,10 @@ test("메인 프로젝트 목록이 6행이고 상세로 연결된다", async ({
     .getByRole("region", { name: "프로젝트", exact: true })
     .getByRole("link");
   await expect(rows).toHaveCount(6);
-  await expect(rows.first()).toContainText("모두의 캠퍼스");
+  await expect(rows.first()).toContainText("월드ENC.CO");
 
   await rows.first().click();
-  await expect(page).toHaveURL("/projects/modu-campus");
+  await expect(page).toHaveURL("/projects/worldengco");
 });
 
 test("레일 네비가 해당 섹션으로 이동시킨다", async ({ page }) => {
@@ -174,15 +176,15 @@ test("상세마다 모바일 화면이 함께 뜬다", async ({ page }) => {
 });
 
 test("상세 이전/다음이 목록 순서대로 순환한다", async ({ page }) => {
-  await gotoPage(page, "/projects/modu-campus");
+  await gotoPage(page, "/projects/worldengco");
   // 첫 프로젝트의 이전은 목록(홈)이다.
   await expect(page.getByRole("link", { name: "← 목록으로" })).toBeVisible();
   await expect(page.getByRole("link", { name: /다음:/ })).toHaveAttribute(
     "href",
-    "/projects/ankang-sumgim",
+    "/projects/coupon-b2b-mall",
   );
 
-  await gotoPage(page, "/projects/coupon-b2b-mall");
+  await gotoPage(page, "/projects/modu-campus");
   // 마지막 프로젝트의 다음도 목록으로 빠진다.
   await expect(page.getByRole("link", { name: "목록으로 →" })).toHaveAttribute(
     "href",

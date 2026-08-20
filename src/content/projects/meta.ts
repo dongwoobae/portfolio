@@ -1,10 +1,11 @@
 import { projectMetaSchema, type ProjectMeta } from "@/content/schema";
 
 // 목록 순서 = 메인 `$ ls projects/`의 행 순서이자 상세 페이지 이전/다음 순환 순서다.
+// 노출 우선순위다 — 착수 순서가 아니다. 가장 강한 증거를 첫 행에 둔다.
 const rawProjects = [
   {
     slug: "modu-campus",
-    order: 1,
+    order: 6,
     title: "모두의 캠퍼스",
     summary: "배리어프리 캠퍼스 웹 지도 · 고려대 체인지메이커스 선정",
     stackLine: "next.js · supabase",
@@ -13,7 +14,7 @@ const rawProjects = [
   },
   {
     slug: "ankang-sumgim",
-    order: 2,
+    order: 4,
     title: "안강 섬김 복지센터",
     summary: "실고객 홈페이지·CMS · 얼굴 자동 블러",
     stackLine: "next.js · sharp",
@@ -31,7 +32,7 @@ const rawProjects = [
   },
   {
     slug: "worldengco",
-    order: 4,
+    order: 1,
     title: "월드ENC.CO",
     summary: "반려견 목욕차 회사 홈페이지 · Wix → 자체 서비스 이관",
     stackLine: "next.js · cloudflare",
@@ -49,7 +50,7 @@ const rawProjects = [
   },
   {
     slug: "coupon-b2b-mall",
-    order: 6,
+    order: 2,
     title: "모바일 쿠폰 B2B 오픈몰",
     summary: "대량 발송 큐 설계 · 발송 결과 정합화 · AWS 이중화 기안",
     stackLine: "nestjs · aws",
