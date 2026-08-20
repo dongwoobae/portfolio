@@ -616,6 +616,65 @@ export const caseStudies: Record<string, CaseStudy> = {
           },
         ],
       },
+      {
+        heading: "## 발췌 — 가용 판정 공유",
+        code: {
+          lang: "typescript",
+          caption: "src/lib/availability.ts — 시그니처와 핵심 분기",
+          code: `/**
+ * 클라이언트(데이트피커 비활성)·서버(Server Action 재검증) 공용 판정.
+ * 반환 null = 예약 가능.
+ *
+ * holidays가 비면(공휴일 API 장애) 공휴일 차단 없이 통과시킨다 —
+ * 판정을 못 한다고 접수를 통째로 막지는 않는다.
+ */
+export function getUnavailableReason(opts: {
+  type: ReservationType;
+  date: string; // "YYYY-MM-DD"
+  today: string;
+  holidays: ReadonlySet<string>;
+  overrides: ReadonlyMap<string, OverrideKind>; // 관리자 휴무·특별영업 지정
+}): UnavailableReason | null {
+  const { type, date, today, holidays, overrides } = opts;
+
+  if (date <= today) return "past"; // 오늘 포함 — 공개 접수는 내일부터
+  if (date > maxReservationDate(today)) return "too_far";
+
+  const wd = weekdayOf(date);
+  if (type === "external_repair") {
+    if (wd !== 6) return "weekday"; // 타사 정비는 토요일만
+  } else if (wd === 0 || wd === 6) {
+    return "weekday";
+  }
+
+  // 관리자 지정이 공휴일 판정을 이긴다 — 공휴일에 여는 날이 있다.
+  const override = overrides.get(date);
+  if (override === "closed") return "closed";
+  if (holidays.has(date) && override !== "open") return "holiday";
+
+  return null;
+}
+
+// 화면과 서버가 같은 함수를 각자 부른다 — 규칙이 두 벌로 갈라지지 않는다.
+//   components/date-picker.tsx    → 달력에서 그 날짜를 비활성화
+//   service/reserve/actions.ts    → 제출 시 서버에서 다시 판정`,
+        },
+      },
+      {
+        heading: "## 발췌 — 이중예약 최종 방어선",
+        code: {
+          lang: "sql",
+          caption: "migrations/ — 확정 예약 슬롯 유니크 제약",
+          code: `-- 앱 레벨 check-then-insert는 D1에서 원자적이지 않다. 두 요청이 같은 빈
+-- 슬롯을 동시에 통과할 수 있어, 마지막 방어선을 DB 제약으로 내린다.
+CREATE UNIQUE INDEX reservations_confirmed_slot_uq
+  ON reservations (date, hour)
+  WHERE status = 'confirmed' AND hour IS NOT NULL;
+
+-- 확정된 예약만 슬롯을 점유한다. 대기·반려 건과 시간 미정("시간 협의",
+-- hour IS NULL)은 조건에서 빠져 같은 날짜에 여러 건이 공존한다.`,
+        },
+      },
     ],
   },
 
