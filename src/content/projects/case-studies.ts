@@ -36,8 +36,11 @@ export type CaseStudy = {
   title: string;
   overview: string;
   meta: MetaCell[];
-  /** 한 줄에 나란히 놓을 스크린샷끼리 묶는다. 줄당 1~3장. */
-  shotRows: Shot[][];
+  /**
+   * 한 줄에 나란히 놓을 스크린샷끼리 묶는다. 줄당 1~3장.
+   * 공개할 수 있는 화면이 없는 케이스에는 없다.
+   */
+  shotRows?: Shot[][];
   mobileShot?: MobileShot;
   sections: CaseStudySection[];
 };
