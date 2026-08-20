@@ -30,6 +30,8 @@ const SLUGS = [
   "googlegemini",
   "tensorflow",
   "zod",
+  "redis",
+  "nestjs",
 ];
 
 async function main() {
