@@ -256,7 +256,7 @@ export const caseStudies: Record<string, CaseStudy> = {
           {
             title: "관리자 폴리곤 직접 드로잉",
             description:
-              "지도 위에서 건물 폴리곤을 직접 그려 신규 건물을 등록·편집. 단순 CRUD가 아닌 지도 인터랙션 구현.",
+              "지도 위에서 건물 외곽선을 직접 그려 신규 건물을 등록·편집. 꼭짓점 단위로 수정하고 좌표를 저장해, 도면 없이도 운영자가 건물 경계를 잡을 수 있다.",
           },
           {
             title: "Overpass API 동기화 — 3-서버 순차 폴백",
