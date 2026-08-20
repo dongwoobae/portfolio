@@ -28,8 +28,10 @@ export const heroIntro = [
   "웹 예약을 열어도 전화 접수는 계속 쓰이기에 한 테이블로 합쳤습니다.",
 ];
 
+// 사이트 안에 케이스가 있는 기술을 앞에 둔다. Spring Boot는 교육과정 팀
+// 프로젝트에만 나와 근거가 사이트 밖에 있으므로 맨 뒤로 내렸다.
 export const stackLines = [
-  { label: "Backend", value: "Java · Spring Boot · NestJS" },
+  { label: "Backend", value: "NestJS · Java · Spring Boot" },
   { label: "Frontend", value: "TypeScript · Next.js · React · JSP" },
   { label: "Data", value: "MariaDB · MySQL · Redis · Supabase · Neon" },
   { label: "Infra", value: "Cloudflare · Vercel · GH Actions" },
@@ -116,13 +118,11 @@ export const team = [
     meta: "7인 팀 · 2024",
     description: "조선 8도 테마 온라인 멀티플레이 보드게임.",
     role: "담당: 로그인(OAuth2·JWT) / 백엔드",
-    stack: "spring security · websocket · stomp",
   },
   {
     name: "낭만닥터",
     meta: "6인 팀 · 2024",
     description: "성형외과 통합 예약·진료 플랫폼.",
     role: "담당: 처방전 / 리뷰게시판 / 결제",
-    stack: "spring boot · thymeleaf · jenkins",
   },
 ] as const;

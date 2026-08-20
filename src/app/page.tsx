@@ -149,9 +149,6 @@ export default function HomePage() {
                   {item.description}{" "}
                   <span className="text-ink">{item.role}</span>
                 </p>
-                <span className="font-mono text-[11px] text-faint">
-                  {item.stack}
-                </span>
               </div>
             ))}
           </div>
