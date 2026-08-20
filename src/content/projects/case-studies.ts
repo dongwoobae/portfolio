@@ -26,9 +26,19 @@ export type MobileShot = { src: string; alt: string; note: string };
 
 export type Card = { title: string; description: string; accent?: boolean };
 
+/**
+ * 저장소를 공개하지 않는 프로젝트에서 판단이 드러나는 최소 단위만 발췌해
+ * 싣는다. 실행 가능한 완전본이 아니다.
+ *
+ * caption은 출처(파일 경로)나 무엇을 자른 것인지, lang은 코드 위에 뜨는
+ * 라벨이다. 하이라이팅은 하지 않으므로 lang이 렌더에 관여하는 곳은 없다.
+ */
+export type CodeBlock = { lang: string; caption: string; code: string };
+
 export type CaseStudySection =
   | { heading: string; prose: ProseSegment[] }
-  | { heading: string; diagram?: DiagramId; cards: Card[]; columns?: 2 };
+  | { heading: string; diagram?: DiagramId; cards: Card[]; columns?: 2 }
+  | { heading: string; code: CodeBlock };
 
 export type CaseStudy = {
   /** 히어로 위 accent 한 줄 (상태 + 맥락) */
