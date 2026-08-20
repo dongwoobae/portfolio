@@ -1,6 +1,6 @@
 # dwoobae.com
 
-> 개인 포트폴리오 웹사이트
+> 개인 포트폴리오 웹사이트 — **[dwoobae.com](https://dwoobae.com)**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16_App_Router-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -8,7 +8,7 @@
 
 ## 구조
 
-메인 랜딩 한 장(좌측 레일 + 섹션들)과 프로젝트 상세 5장이 전부입니다. 다크 터미널 테마이고, 디자인 토큰은 `src/app/globals.css`의 `@theme`에 모여 있습니다.
+메인 랜딩 한 장(좌측 레일 + 섹션들)과 프로젝트 상세 6장이 전부입니다. 다크 터미널 테마이고, 디자인 토큰은 `src/app/globals.css`의 `@theme`에 모여 있습니다.
 
 - 콘텐츠는 DB 없이 파일 기반입니다. 목록 행에 그려지는 값은 `src/content/projects/meta.ts`에서 zod로 빌드타임 검증하고, 상세 페이지 본문은 `src/content/projects/case-studies.ts`가 slug로 물고 있습니다. 랜딩 카피는 `src/content/home.ts`입니다.
 - 상세는 `generateStaticParams` + `dynamicParams = false`로 정적 생성합니다.
