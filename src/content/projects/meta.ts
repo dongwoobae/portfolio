@@ -47,6 +47,15 @@ const rawProjects = [
     badge: { label: "1인 PM", tone: "muted" },
     preview: "/screenshots/hmsu-home.png",
   },
+  {
+    slug: "coupon-b2b-mall",
+    order: 6,
+    title: "모바일 쿠폰 B2B 오픈몰",
+    summary: "대량 발송 큐 설계 · 발송 결과 정합화 · AWS 이중화 기안",
+    stackLine: "nestjs · aws",
+    badge: { label: "WIP", tone: "accent" },
+    preview: "/screenshots/coupon-mall-architecture.png",
+  },
 ];
 
 // 빌드타임 검증 — 형식이 틀리면 여기서 빌드가 깨진다.

@@ -3,8 +3,8 @@ import { caseStudies } from "@/content/projects/case-studies";
 import { projects } from "@/content/projects/meta";
 
 describe("프로젝트 메타", () => {
-  it("5개 프로젝트가 등록되어 있다", () => {
-    expect(projects).toHaveLength(5);
+  it("6개 프로젝트가 등록되어 있다", () => {
+    expect(projects).toHaveLength(6);
   });
 
   it("slug가 유일하다", () => {

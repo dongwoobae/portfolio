@@ -72,7 +72,7 @@ describe("스크린샷 자산", () => {
   // 촬영할 화면이 없어 shotRows를 비운 케이스는 대상이 아니다.
   it("스크린샷을 갖는 케이스가 모바일 화면과 촬영 규격을 지킨다", () => {
     const studies = Object.entries(caseStudies);
-    expect(studies).toHaveLength(5);
+    expect(studies).toHaveLength(6);
 
     const shot = studies.filter(([, study]) => study.shotRows);
     expect(shot.length, "모바일 검증 대상이 하나도 없다").toBeGreaterThan(0);

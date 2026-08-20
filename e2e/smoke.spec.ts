@@ -7,7 +7,12 @@ const PROJECT_SLUGS = [
   "ycc-website",
   "worldengco",
   "hmsu",
+  "coupon-b2b-mall",
 ];
+
+// 스크린샷을 갖는 프로젝트. 사내 업무 케이스는 공개할 수 있는 화면이 없어
+// 다이어그램과 산문만으로 서므로 이미지 검증에서 뺀다.
+const SHOT_SLUGS = PROJECT_SLUGS.filter((slug) => slug !== "coupon-b2b-mall");
 
 test("메인에 레일·히어로·전 섹션이 보인다", async ({ page }) => {
   await page.goto("/");
@@ -43,13 +48,13 @@ test("메인에 레일·히어로·전 섹션이 보인다", async ({ page }) =>
   }
 });
 
-test("메인 프로젝트 목록이 5행이고 상세로 연결된다", async ({ page }) => {
+test("메인 프로젝트 목록이 6행이고 상세로 연결된다", async ({ page }) => {
   await page.goto("/");
 
   const rows = page
     .getByRole("region", { name: "프로젝트", exact: true })
     .getByRole("link");
-  await expect(rows).toHaveCount(5);
+  await expect(rows).toHaveCount(6);
   await expect(rows.first()).toContainText("모두의 캠퍼스");
 
   await rows.first().click();
@@ -69,13 +74,15 @@ test("레일 네비가 해당 섹션으로 이동시킨다", async ({ page }) =>
   ).toBeInViewport();
 });
 
-test("프로젝트 상세 5장이 모두 뜨고 스크린샷이 로드된다", async ({ page }) => {
+test("프로젝트 상세 6장이 모두 뜨고 스크린샷이 로드된다", async ({ page }) => {
   for (const slug of PROJECT_SLUGS) {
     const response = await gotoPage(page, `/projects/${slug}`);
     expect(response?.status(), `${slug} 응답`).toBe(200);
 
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByText(`projects/${slug}`)).toBeVisible();
+
+    if (!SHOT_SLUGS.includes(slug)) continue;
 
     // 바이트가 실제로 도착하는지는 페이지마다 대표 한 장으로만 확인한다.
     const hero = page.getByRole("img").first();
@@ -154,7 +161,7 @@ test("상세 스크린샷이 줄 구성과 무관하게 잘리지 않는다", as
 });
 
 test("상세마다 모바일 화면이 함께 뜬다", async ({ page }) => {
-  for (const slug of PROJECT_SLUGS) {
+  for (const slug of SHOT_SLUGS) {
     await gotoPage(page, `/projects/${slug}`);
 
     const mobile = page.getByRole("img", { name: /모바일/ });
@@ -175,7 +182,7 @@ test("상세 이전/다음이 목록 순서대로 순환한다", async ({ page }
     "/projects/ankang-sumgim",
   );
 
-  await gotoPage(page, "/projects/hmsu");
+  await gotoPage(page, "/projects/coupon-b2b-mall");
   // 마지막 프로젝트의 다음도 목록으로 빠진다.
   await expect(page.getByRole("link", { name: "목록으로 →" })).toHaveAttribute(
     "href",
