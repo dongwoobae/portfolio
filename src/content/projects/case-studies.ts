@@ -263,11 +263,6 @@ export const caseStudies: Record<string, CaseStudy> = {
             description:
               "OpenStreetMap Overpass 서버 3개를 순차 시도해 외부 API 장애에 대응. 소프트 삭제된 건물은 sync가 재추가하지 않도록 충돌 방지 로직 구현.",
           },
-          {
-            title: "Papago NMT 자동 다국어화",
-            description:
-              "관리자가 한국어로 입력하면 등록 시점에 en/zh로 자동 번역(Promise.all 병렬) 후 저장 — 한국어 / English / 中文 i18n 제공.",
-          },
         ],
       },
     ],
@@ -358,11 +353,6 @@ export const caseStudies: Record<string, CaseStudy> = {
             title: "원본/블러 이중 저장 + 토글",
             description:
               "original/·blurred/ 두 버전을 보관해 사진별 블러 on/off와 수동 블러 영역 편집(fallback)까지 지원.",
-          },
-          {
-            title: "메모리 안정화",
-            description:
-              "TF.js 텐서 메모리 누수를 objectURL 해제 + GC yield로 완화.",
           },
         ],
       },
