@@ -26,9 +26,19 @@ export type MobileShot = { src: string; alt: string; note: string };
 
 export type Card = { title: string; description: string; accent?: boolean };
 
+/**
+ * 저장소를 공개하지 않는 프로젝트에서 판단이 드러나는 최소 단위만 발췌해
+ * 싣는다. 실행 가능한 완전본이 아니다.
+ *
+ * caption은 출처(파일 경로)나 무엇을 자른 것인지, lang은 코드 위에 뜨는
+ * 라벨이다. 하이라이팅은 하지 않으므로 lang이 렌더에 관여하는 곳은 없다.
+ */
+export type CodeBlock = { lang: string; caption: string; code: string };
+
 export type CaseStudySection =
   | { heading: string; prose: ProseSegment[] }
-  | { heading: string; diagram?: DiagramId; cards: Card[]; columns?: 2 };
+  | { heading: string; diagram?: DiagramId; cards: Card[]; columns?: 2 }
+  | { heading: string; code: CodeBlock };
 
 export type CaseStudy = {
   /** 히어로 위 accent 한 줄 (상태 + 맥락) */
@@ -36,13 +46,129 @@ export type CaseStudy = {
   title: string;
   overview: string;
   meta: MetaCell[];
-  /** 한 줄에 나란히 놓을 스크린샷끼리 묶는다. 줄당 1~3장. */
-  shotRows: Shot[][];
+  /**
+   * 한 줄에 나란히 놓을 스크린샷끼리 묶는다. 줄당 1~3장.
+   * 공개할 수 있는 화면이 없는 케이스에는 없다.
+   */
+  shotRows?: Shot[][];
   mobileShot?: MobileShot;
   sections: CaseStudySection[];
 };
 
 export const caseStudies: Record<string, CaseStudy> = {
+  "coupon-b2b-mall": {
+    statusLine: "WIP · 2026 — 재직 중 담당 · 오픈 준비",
+    title: "모바일 쿠폰 B2B 오픈몰",
+    overview:
+      "엑셀 집행신청서를 주고받으며 수작업으로 처리하던 모바일 쿠폰 B2B 거래를 온라인 서비스로 전환하는 프로젝트입니다. 기획·프론트엔드와 요구사항을 조율하며 회원·발송·견적서·장바구니 도메인의 API와 데이터 구조를 설계하고, 운영 배포용 인프라를 결재 문서로 기안했습니다.",
+    meta: [
+      { label: "ROLE", value: "백엔드 설계 · 개발 · 인프라 기안" },
+      { label: "PERIOD", value: "2026.04 — 오픈 준비 중" },
+      {
+        label: "STACK",
+        value: "NestJS · TypeORM · MySQL · Redis · AWS",
+      },
+    ],
+    sections: [
+      {
+        heading: "## 문제",
+        prose: [
+          "거래가 엑셀 파일을 주고받는 방식으로 돌아가고 있었습니다. 집행신청서를 받아 담당자가 옮겨 적고, 발송 결과를 다시 파일로 회신하는 흐름이라 건수가 늘수록 사람이 병목이 됩니다. 이 흐름을 그대로 화면으로 옮기면 수작업만 온라인으로 옮겨질 뿐이라, ",
+          { em: "무엇을 자동화하고 무엇을 사람이 확인해야 하는지" },
+          "부터 나눠야 했습니다.",
+          " 사내에는 이미 같은 성격의 발송 시스템이 있었지만 담당자만 쓰는 폐쇄형이었고, 새로 만드는 쪽은 거래처가 직접 들어오는 오픈몰입니다. ",
+          { em: "같은 기능이어도 전제가 다르다는 것" },
+          "이 이 프로젝트에서 구조를 가르는 지점이었습니다.",
+        ],
+      },
+      {
+        heading: "## 대량 발송 큐 — 설계",
+        diagram: "coupon-mall-queue",
+        columns: 2,
+        cards: [
+          {
+            title: "폴링에서 큐로 — 전제가 달라졌다",
+            description:
+              "먼저 운영하던 사내 발송 시스템은 데이터베이스를 주기적으로 훑는 방식이었습니다. 발송 전용 서버였고 담당자만 쓰는 폐쇄형이라 지연이 문제가 되지 않았습니다. 오픈몰은 거래처 요청과 발송 처리가 같은 서버에서 만나므로, 훑는 부하가 서비스 응답으로 번지지 않도록 큐를 Redis로 분리했습니다.",
+            accent: true,
+          },
+          {
+            title: "제한 아래로 소비 속도를 맞춘다",
+            description:
+              "발송사가 분당 요청 수를 제한합니다. 수신자 한 명을 작업 한 건으로 쪼개 큐에 넣고, 워커가 그 제한 아래로 꺼내는 속도와 동시 실행 수를 함께 묶었습니다. 요청 건수가 늘어도 초과 호출로 거절당하지 않고 큐 길이로 흡수됩니다.",
+            accent: true,
+          },
+          {
+            title: "실패를 수신자 단위로 격리한다",
+            description:
+              "발송사 응답을 재시도 가능한 사유와 영구 실패로 나눕니다. 재시도 가능한 것만 지수 백오프로 큐에 되돌리고, 영구 실패는 그 수신자만 종결합니다. 한 명이 실패했다고 배치 전체를 되돌리면 이미 받은 사람에게 중복이 나가기 때문입니다.",
+          },
+          {
+            title: "채널 차이를 어댑터가 흡수한다",
+            description:
+              "문자·알림톡·이메일은 규격도 응답 코드도 다릅니다. 발송사를 포트 뒤로 두고 채널별 어댑터가 차이를 흡수하게 해, 큐와 워커는 채널을 모르는 채로 같은 코드를 씁니다. 발송사를 바꿔도 어댑터만 갈아 끼웁니다.",
+          },
+        ],
+      },
+      {
+        heading: "## 발송 결과 정합화",
+        columns: 2,
+        cards: [
+          {
+            title: "보낸 것과 도착한 것은 다르다",
+            description:
+              "발송사에 요청을 넘긴 시점에는 결과를 알 수 없습니다. 요청 적재와 결과 확인을 분리하고, 폴러가 발송사 결과를 읽어 자체 로그를 종결 상태로 수렴시킵니다. 화면이 보는 상태와 실제 도달 여부가 어긋나지 않게 하는 것이 목적입니다.",
+            accent: true,
+          },
+          {
+            title: "모르는 것을 실패로 뭉개지 않는다",
+            description:
+              "결과가 오지 않는 경우를 실패로 처리하면 재발송이 남발됩니다. 발송사가 아직 가져가지 않은 상태와 양쪽 어디에도 기록이 없는 상태를 따로 두고, 각각 다른 임계 시간을 넘겼을 때만 개입 대상으로 올립니다.",
+            accent: true,
+          },
+          {
+            title: "결과가 오기 전에 판정하지 않는다",
+            description:
+              "적재 직후 조회하면 아직 처리되지 않은 건을 실패로 오인합니다. 큐에서 결과로 넘어가는 데 걸리는 시간을 실측해 최소 대기 나이를 두고, 그보다 어린 건은 아예 조회 대상에서 뺐습니다.",
+          },
+          {
+            title: "외부 의존 없이 개발·테스트한다",
+            description:
+              "발송사 연동을 포트와 어댑터로 나누고 스텁 모드를 두어, 개발과 테스트에서는 발송사 접속 없이 같은 코드 경로를 탑니다. 발송 파라미터에 개인정보가 실리므로 쿼리 로깅은 환경별로 차단했습니다.",
+          },
+        ],
+      },
+      {
+        heading: "## 운영 인프라 — 무엇을 뺐고 왜인가",
+        diagram: "coupon-mall-infra",
+        columns: 2,
+        cards: [
+          {
+            title: "상위 방어 서비스를 제외한 근거",
+            description:
+              "기본 네트워크 계층 보호가 대량 트래픽 공격을 막고, 정상 접속을 가장한 애플리케이션 계층 폭주는 웹 방화벽의 요청량 제한으로 완화됩니다. 이를 넘는 대규모 표적 공격은 상위 서비스가 필요하지만 고정비가 현 서비스 규모에 맞지 않아 제외했습니다. 대신 그 경우 수동 차단이 필요하다는 한계를 기안에 함께 적었습니다.",
+            accent: true,
+          },
+          {
+            title: "빠진 것을 적는 것이 기안의 일이다",
+            description:
+              "결재 문서에 구성과 비용만 담으면 읽는 사람은 무엇을 못 막는지 알 수 없습니다. 장애 유형별로 자동 복구되는 것과 사람이 개입해야 하는 것, 복구까지 걸리는 시간을 나눠 적어 판단에 필요한 재료를 함께 올렸습니다.",
+            accent: true,
+          },
+          {
+            title: "이중화는 배치까지가 설계다",
+            description:
+              "서버를 두 대로 늘려도 같은 가용영역에 두면 그 데이터센터가 멈출 때 동시에 멈춥니다. 앱 서버와 데이터베이스, 캐시를 모두 가용영역 두 곳에 나눠 배치했습니다. 캐시는 분산 락의 주체라 주 노드가 멈추면 발송 경합 제어를 잃으므로 자동 장애 조치까지 켰습니다.",
+          },
+          {
+            title: "공격 표면을 줄여 둔다",
+            description:
+              "프론트엔드가 백엔드 호출을 서버 측에서 대행하는 구조라 백엔드를 외부에 노출하지 않았습니다. 첨부파일은 브라우저와 스토리지가 서명된 URL로 직접 주고받아 서버를 거치지 않습니다. 다만 이는 방어 계층의 추가일 뿐 백엔드 자체의 인증·권한을 대체하지 않습니다.",
+          },
+        ],
+      },
+    ],
+  },
   "modu-campus": {
     statusLine: "WIP · 2026 — 고려대학교 체인지메이커스 선정",
     title: "모두의 캠퍼스",
@@ -130,17 +256,12 @@ export const caseStudies: Record<string, CaseStudy> = {
           {
             title: "관리자 폴리곤 직접 드로잉",
             description:
-              "지도 위에서 건물 폴리곤을 직접 그려 신규 건물을 등록·편집. 단순 CRUD가 아닌 지도 인터랙션 구현.",
+              "지도 위에서 건물 외곽선을 직접 그려 신규 건물을 등록·편집. 꼭짓점 단위로 수정하고 좌표를 저장해, 도면 없이도 운영자가 건물 경계를 잡을 수 있다.",
           },
           {
             title: "Overpass API 동기화 — 3-서버 순차 폴백",
             description:
               "OpenStreetMap Overpass 서버 3개를 순차 시도해 외부 API 장애에 대응. 소프트 삭제된 건물은 sync가 재추가하지 않도록 충돌 방지 로직 구현.",
-          },
-          {
-            title: "Papago NMT 자동 다국어화",
-            description:
-              "관리자가 한국어로 입력하면 등록 시점에 en/zh로 자동 번역(Promise.all 병렬) 후 저장 — 한국어 / English / 中文 i18n 제공.",
           },
         ],
       },
@@ -232,11 +353,6 @@ export const caseStudies: Record<string, CaseStudy> = {
             title: "원본/블러 이중 저장 + 토글",
             description:
               "original/·blurred/ 두 버전을 보관해 사진별 블러 on/off와 수동 블러 영역 편집(fallback)까지 지원.",
-          },
-          {
-            title: "메모리 안정화",
-            description:
-              "TF.js 텐서 메모리 누수를 objectURL 해제 + GC yield로 완화.",
           },
         ],
       },
@@ -489,6 +605,65 @@ export const caseStudies: Record<string, CaseStudy> = {
               "업체는 웹 예약을 열어도 전화 접수를 계속 쓴다. 두 경로를 별도 시스템으로 나누지 않고 전화 예약을 source='manual'로 같은 테이블에 등록해, 운영자가 캘린더 하나에서 전체 일정을 관리하고 장부를 이중으로 들지 않게 했다.",
           },
         ],
+      },
+      {
+        heading: "## 발췌 — 가용 판정 공유",
+        code: {
+          lang: "typescript",
+          caption: "src/lib/availability.ts — 시그니처와 핵심 분기",
+          code: `/**
+ * 클라이언트(데이트피커 비활성)·서버(Server Action 재검증) 공용 판정.
+ * 반환 null = 예약 가능.
+ *
+ * holidays가 비면(공휴일 API 장애) 공휴일 차단 없이 통과시킨다 —
+ * 판정을 못 한다고 접수를 통째로 막지는 않는다.
+ */
+export function getUnavailableReason(opts: {
+  type: ReservationType;
+  date: string; // "YYYY-MM-DD"
+  today: string;
+  holidays: ReadonlySet<string>;
+  overrides: ReadonlyMap<string, OverrideKind>; // 관리자 휴무·특별영업 지정
+}): UnavailableReason | null {
+  const { type, date, today, holidays, overrides } = opts;
+
+  if (date <= today) return "past"; // 오늘 포함 — 공개 접수는 내일부터
+  if (date > maxReservationDate(today)) return "too_far";
+
+  const wd = weekdayOf(date);
+  if (type === "external_repair") {
+    if (wd !== 6) return "weekday"; // 타사 정비는 토요일만
+  } else if (wd === 0 || wd === 6) {
+    return "weekday";
+  }
+
+  // 관리자 지정이 공휴일 판정을 이긴다 — 공휴일에 여는 날이 있다.
+  const override = overrides.get(date);
+  if (override === "closed") return "closed";
+  if (holidays.has(date) && override !== "open") return "holiday";
+
+  return null;
+}
+
+// 화면과 서버가 같은 함수를 각자 부른다 — 규칙이 두 벌로 갈라지지 않는다.
+//   components/date-picker.tsx    → 달력에서 그 날짜를 비활성화
+//   service/reserve/actions.ts    → 제출 시 서버에서 다시 판정`,
+        },
+      },
+      {
+        heading: "## 발췌 — 이중예약 최종 방어선",
+        code: {
+          lang: "sql",
+          caption: "migrations/ — 확정 예약 슬롯 유니크 제약",
+          code: `-- 앱 레벨 check-then-insert는 D1에서 원자적이지 않다. 두 요청이 같은 빈
+-- 슬롯을 동시에 통과할 수 있어, 마지막 방어선을 DB 제약으로 내린다.
+CREATE UNIQUE INDEX reservations_confirmed_slot_uq
+  ON reservations (date, hour)
+  WHERE status = 'confirmed' AND hour IS NOT NULL;
+
+-- 확정된 예약만 슬롯을 점유한다. 대기·반려 건과 시간 미정("시간 협의",
+-- hour IS NULL)은 조건에서 빠져 같은 날짜에 여러 건이 공존한다.`,
+        },
       },
     ],
   },

@@ -1,4 +1,5 @@
 import type { StaticImageData } from "next/image";
+import couponMallArchitecture from "../../../public/screenshots/coupon-mall-architecture.png";
 import hmsuHome from "../../../public/screenshots/hmsu-home.png";
 import hmsuSearch from "../../../public/screenshots/hmsu-search.png";
 import ankangSumgimMobile from "../../../public/screenshots/mobile/ankang-sumgim-mobile.png";
@@ -34,6 +35,7 @@ import yccSermonDetail from "../../../public/screenshots/ycc-sermon-detail.png";
  * 여기에도 한 줄 넣는다 — 빠뜨리면 assets.test.ts가 잡는다.
  */
 export const screenshots = {
+  "/screenshots/coupon-mall-architecture.png": couponMallArchitecture,
   "/screenshots/hmsu-home.png": hmsuHome,
   "/screenshots/hmsu-search.png": hmsuSearch,
   "/screenshots/modu-admin-buildings.png": moduAdminBuildings,

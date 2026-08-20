@@ -1,5 +1,7 @@
 import type { ComponentType } from "react";
 import type { DiagramId } from "@/content/projects/diagrams";
+import { CouponMallInfra } from "./CouponMallInfra";
+import { CouponMallQueue } from "./CouponMallQueue";
 import { SumgimBlur } from "./SumgimBlur";
 import { WorldengReservation } from "./WorldengReservation";
 import { YccQstash } from "./YccQstash";
@@ -13,4 +15,6 @@ export const DIAGRAMS: Record<DiagramId, ComponentType<DiagramProps>> = {
   "ycc-qstash": YccQstash,
   "sumgim-blur": SumgimBlur,
   "worldeng-reservation": WorldengReservation,
+  "coupon-mall-queue": CouponMallQueue,
+  "coupon-mall-infra": CouponMallInfra,
 };

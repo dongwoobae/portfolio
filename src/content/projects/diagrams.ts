@@ -3,7 +3,12 @@
 // Record<DiagramId, ComponentType>이라 여기 id를 추가하고 컴포넌트를 안 만들면 타입 검사가 깨진다.
 
 export type DiagramId =
-  "ycc-websub" | "ycc-qstash" | "sumgim-blur" | "worldeng-reservation";
+  | "ycc-websub"
+  | "ycc-qstash"
+  | "sumgim-blur"
+  | "worldeng-reservation"
+  | "coupon-mall-queue"
+  | "coupon-mall-infra";
 
 export type DiagramMeta = {
   /** svg <title> — 라이트박스 헤더와 접근가능 이름으로도 쓴다 */
@@ -33,6 +38,18 @@ export const DIAGRAM_META: Record<DiagramId, DiagramMeta> = {
     desc: "브라우저에서 이미지를 먼저 압축해 업로드 파일과 얼굴 좌표의 기준을 맞춘 뒤 face-api.js로 얼굴을 감지한다. TensorFlow.js 백엔드가 단일 스레드라 감지는 순차로 돈다. 업로드는 Server Action 직렬화를 피해 API Route로 병렬 전송한다. 서버는 세션과 매직바이트를 검증하고 sharp로 EXIF 회전을 보정한 뒤 리사이즈본 기준으로 좌표를 변환해 해당 영역만 블러 처리해 합성한다. 블러본과 원본을 Cloudflare R2에 병렬 업로드하고 메타데이터는 Supabase에 순차로 저장한다.",
     width: 840,
     height: 635,
+  },
+  "coupon-mall-queue": {
+    title: "대량 발송 큐 — 소비 속도 제어와 실패 격리",
+    desc: "대량 발송 요청이 들어오면 수신자 한 명이 작업 한 건이 되어 Redis 큐에 적재된다. 워커는 발송사가 건 분당 요청 제한 아래로 소비 속도를 맞추고 동시 실행 수를 묶어 꺼내며, 채널 어댑터가 문자·알림톡·이메일의 규격 차이를 흡수해 각 발송사 API로 내보낸다. 실패는 재시도 가능한 사유와 영구 실패를 나눠, 재시도 가능한 것만 지수 백오프로 큐에 되돌리고 영구 실패는 그 수신자만 종결한다. 한 수신자의 실패가 배치 전체를 되돌리지 않는다. 먼저 운영하던 사내 발송 시스템은 데이터베이스를 주기적으로 훑는 방식이었으나, 담당자만 쓰는 폐쇄형이라 지연이 문제가 되지 않았다. 오픈몰은 조건이 달라 그 부하가 서비스 응답으로 번지지 않도록 큐를 Redis로 옮겼다.",
+    width: 840,
+    height: 520,
+  },
+  "coupon-mall-infra": {
+    title: "운영 인프라 — 이중화 구성과 제외 근거",
+    desc: "사용자 요청은 로드밸런서를 거쳐 가용영역 두 곳에 나눠 둔 애플리케이션 서버 두 대로 분산된다. 백엔드는 외부에 노출하지 않고 프론트엔드 서버를 통해서만 도달하며, 첨부파일은 브라우저와 오브젝트 스토리지가 서명된 URL로 직접 주고받아 서버를 거치지 않는다. 데이터베이스는 다중 가용영역 구성으로 장애 시 자동 절체되고, 캐시도 두 노드를 가용영역에 나눠 두어 분산 락의 주체가 단일 실패 지점이 되지 않게 했다. 방어는 기본 네트워크 계층 보호와 웹 방화벽의 요청량 제한까지 두고, 그 위의 상위 방어 서비스는 현 서비스 규모에 과투자로 판단해 제외하되 표적 공격 시 수동 대응이 필요하다는 한계를 함께 남겼다.",
+    width: 840,
+    height: 400,
   },
   "worldeng-reservation": {
     title: "예약 시스템 — 가용 판정 공유와 이중예약 방어",

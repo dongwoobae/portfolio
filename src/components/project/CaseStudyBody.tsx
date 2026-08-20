@@ -1,3 +1,4 @@
+import { CaseStudyCode } from "@/components/project/CaseStudyCode";
 import { CaseStudyDiagram } from "@/components/project/CaseStudyDiagram";
 import type { CaseStudySection } from "@/content/projects/case-studies";
 
@@ -27,6 +28,8 @@ export function CaseStudyBody({
                 ),
               )}
             </p>
+          ) : "code" in section ? (
+            <CaseStudyCode block={section.code} />
           ) : (
             <>
               {/* 그림이 전체 흐름을 먼저 보여주고 카드가 각 단계를 상술한다. */}

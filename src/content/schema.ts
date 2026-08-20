@@ -14,7 +14,7 @@ export const projectMetaSchema = z.object({
   slug: z
     .string()
     .regex(/^[a-z0-9-]+$/, "slug는 소문자·숫자·하이픈만 사용한다"),
-  // 착수 순서. 목록 정렬과 상세 페이지의 이전/다음 네비가 이 순서를 따른다.
+  // 노출 우선순위. 목록 정렬과 상세 페이지의 이전/다음 네비가 이 순서를 따른다.
   order: z.number().int().positive(),
   // 목록 행에 쓰는 짧은 이름. 상세 h1은 이보다 길 수 있다.
   title: z.string().min(1),
